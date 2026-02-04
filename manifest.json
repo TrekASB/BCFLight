@@ -1,9 +1,11 @@
 {
-  "url": "https://trekasb.github.io/BCFLight/index.html",
-  "title": "BCFTopicPulse_Light",
+  "title": "BCFTopicPulse",
   "icon": "https://trekasb.github.io/BCFLight/icon.png",
-  "infoUrl": "https://trekasb.github.io/BCFLight/help.html"
+  "url": "https://trekasb.github.io/BCFLight/index.html",
+  "description": "Viser statistikk over BCF Topics (type, prioritet og status) for valgt prosjekt.",
+  "enabled": true
 }
+
 
 
 
