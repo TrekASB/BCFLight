@@ -1,10 +1,11 @@
 {
-  "title": "BCFTopicPulse",
+  "title": "BCFTopicPulseLight",
   "icon": "https://trekasb.github.io/BCFLight/icon.png",
   "url": "https://trekasb.github.io/BCFLight/index.html",
   "description": "Viser statistikk over BCF Topics (type, prioritet og status) for valgt prosjekt.",
   "enabled": true
 }
+
 
 
 
