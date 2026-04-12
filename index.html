@@ -223,7 +223,7 @@
   <div class="titleBlock">
     <div class="title">BCFTopicPulse</div>
     <div class="org">Norconsult Norge</div>
-    <div class="dev">Developed by Norconsult (AI-assisted). Kontakt: Edin.Dzakmic@norconsult.com</div>
+    <div class="dev">Developed by Norconsult (AI-assisted). Kontakt: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b0f5d4d9de9ef4cad1dbddd9d3f0dedfc2d3dfdec3c5dcc49ed3dfdd">[email&#160;protected]</a></div>
   </div>
   <div class="headerRight">
     <div id="statusMsg"><span class="loading-spinner"></span>Kobler til Trimble Connect…</div>
@@ -282,11 +282,11 @@
 
   <div class="cards">
     <div class="card">
-      <h2>Fag (Tag) — antall saker + statusoversikt</h2>
+      <h2 id="firstCardTitle">Fag (Tag) — antall saker + statusoversikt</h2>
       <div class="divider"></div>
       <div class="chartWrap"><canvas id="tagPieChart"></canvas></div>
       <div id="tagTableWrap" class="tableWrap"></div>
-      <div class="cardNote">Klikk kakestykke → åpne topics. Klikk rad → filtrer dashboard.</div>
+      <div class="cardNote" id="firstCardNote">Klikk kakestykke → åpne topics. Klikk rad → filtrer dashboard.</div>
     </div>
     <div class="card">
       <h2>Topics per Status over tid</h2>
@@ -370,7 +370,7 @@
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ─────────────────────────────────────────────
 //  CONSTANTS
 // ─────────────────────────────────────────────
@@ -894,6 +894,127 @@ function renderTagTable(matrix){
 }
 
 // ─────────────────────────────────────────────
+//  USER STATUS VIEW  (replaces tag-pie when assignee filter is active)
+// ─────────────────────────────────────────────
+function renderUserStatusView(topics){
+  const titleEl = document.getElementById("firstCardTitle");
+  const noteEl  = document.getElementById("firstCardNote");
+  const wrapEl  = document.getElementById("tagTableWrap");
+
+  // Friendly display name (strip email domain for readability if it looks like email)
+  const displayName = fAssignee.includes("@")
+    ? fAssignee.split("@")[0].replace(/[._]/g, " ").replace(/\w/g, c => c.toUpperCase())
+    : fAssignee;
+
+  titleEl.textContent = `👤 ${displayName} — statusoversikt (${topics.length} saker)`;
+  noteEl.textContent  = "Velger du bort brukeren vises fagvis oversikt igjen.";
+
+  // ── Status pie ──
+  const statusCounts = {};
+  for(const t of topics){
+    const st = getStatus(t);
+    statusCounts[st] = (statusCounts[st] || 0) + 1;
+  }
+
+  // Sort: closed last, open first
+  const statusOrder = s => CLOSED_STATUSES.has(s) ? 1 : 0;
+  const labels = Object.keys(statusCounts).sort((a,b) => statusOrder(a) - statusOrder(b) || a.localeCompare(b));
+  const data   = labels.map(l => statusCounts[l]);
+
+  // Use status-appropriate colors
+  const statusColors = {
+    "Open":     "#3b82f6",
+    "Active":   "#3b82f6",
+    "Åpen":     "#3b82f6",
+    "In Progress": "#f59e0b",
+    "Pågår":    "#f59e0b",
+    "Closed":   "#10b981",
+    "Done":     "#10b981",
+    "Resolved": "#10b981",
+    "Approved": "#16a34a",
+    "Rejected": "#ef4444",
+  };
+  const colors = labels.map((l, i) => statusColors[l] || PALETTE[i % PALETTE.length]);
+
+  clearEmptyOverlay("tagPieChart");
+  if(!labels.length || !data.some(v => v > 0)){
+    noDataOverlay("tagPieChart", "Ingen saker funnet for valgt bruker");
+    wrapEl.innerHTML = "";
+    return;
+  }
+
+  destroyChart("tagPieChart");
+  const ctx = freshCanvas("tagPieChart");
+  if(ctx){
+    const total = data.reduce((a,b) => a+b, 0);
+    CHARTS["tagPieChart"] = new Chart(ctx, {
+      type: "pie",
+      data: { labels, datasets: [{ data, backgroundColor: colors }] },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: true, position: "right", labels: { font: { size: 12 }, boxWidth: 14 } },
+          tooltip: {
+            callbacks: {
+              label: c => {
+                const v = c.parsed ?? 0;
+                return `${c.label}: ${v} saker (${total ? ((v/total)*100).toFixed(1) : 0}%)`;
+              }
+            }
+          },
+          datalabels: {
+            formatter: (value, ctx2) => {
+              const sum = ctx2.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+              if(!sum) return "";
+              const pct = (value/sum)*100;
+              return pct < 5 ? "" : `${value}
+(${pct.toFixed(0)}%)`;
+            },
+            font: { weight: "bold", size: 12 },
+            color: "#fff",
+            textAlign: "center",
+          }
+        }
+      }
+    });
+  }
+
+  // ── Status summary table below pie ──
+  const closedCount = labels.filter(l => CLOSED_STATUSES.has(l)).reduce((s,l) => s + (statusCounts[l]||0), 0);
+  const openCount   = topics.length - closedCount;
+  const pctClosed   = topics.length ? Math.round((closedCount / topics.length) * 100) : 0;
+
+  const rows = labels.map(l => {
+    const cnt  = statusCounts[l] || 0;
+    const pct  = topics.length ? ((cnt / topics.length) * 100).toFixed(1) : "0.0";
+    const cls  = statusBadgeClass(l);
+    const bar  = `<div style="width:${pct}%;min-width:${cnt?3:0}px;height:6px;border-radius:3px;background:${statusColors[l]||'#94a3b8'};"></div>`;
+    return `<tr>
+      <td><span class="pill ${cls}">${esc(l)}</span></td>
+      <td class="right"><b>${cnt}</b></td>
+      <td class="right" style="color:var(--muted);font-size:11px;">${pct}%</td>
+      <td style="width:80px;">${bar}</td>
+    </tr>`;
+  }).join("");
+
+  wrapEl.innerHTML = `
+    <div style="display:flex;gap:16px;padding:8px 12px;background:#f8fafc;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--muted);">
+      <span>✅ Lukket: <b style="color:var(--success)">${closedCount}</b> (${pctClosed}%)</span>
+      <span>🔵 Åpen: <b style="color:var(--primary)">${openCount}</b> (${100-pctClosed}%)</span>
+      <span style="margin-left:auto;">Totalt: <b>${topics.length}</b></span>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Status</th>
+        <th class="right">Antall</th>
+        <th class="right">%</th>
+        <th>Fordeling</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ─────────────────────────────────────────────
 //  MAIN RENDER
 // ─────────────────────────────────────────────
 function doRender(){
@@ -902,13 +1023,21 @@ function doRender(){
   // Count badge
   document.getElementById("topicCountBadge").textContent = `${fullFiltered.length} topics`;
 
-  // ── Topic dashboard ──
-  const tagCounts = aggTagCounts(weekFiltered); // pie always shows full week set
-  buildPie("tagPieChart",
-    Object.keys(tagCounts), Object.values(tagCounts),
-    tag => openModal(tag)
-  );
-  renderTagTable(aggTagStatusMatrix(weekFiltered));
+  // ── Topic dashboard — first card switches based on active assignee filter ──
+  if(fAssignee){
+    // BRUKER-MODUS: Vis statusfordeling for valgt bruker som kakediagram
+    renderUserStatusView(fullFiltered);
+  } else {
+    // FAGNIVÅ-MODUS: Vis fagvis (Tag) fordeling — bruker weekFiltered (ufiltrert på tag/status)
+    const tagCounts = aggTagCounts(weekFiltered);
+    buildPie("tagPieChart",
+      Object.keys(tagCounts), Object.values(tagCounts),
+      tag => openModal(tag)
+    );
+    renderTagTable(aggTagStatusMatrix(weekFiltered));
+    document.getElementById("firstCardTitle").textContent = "Fag (Tag) — antall saker + statusoversikt";
+    document.getElementById("firstCardNote").textContent  = "Klikk kakestykke → åpne topics. Klikk rad → filtrer dashboard.";
+  }
 
   // Trend charts use fullFiltered
   const byStatus   = aggByWeek(fullFiltered, getStatus);
@@ -1267,12 +1396,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("modalOverlay").addEventListener("click", e => {
     if(e.target === document.getElementById("modalOverlay")) closeModal();
   });
-  document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
-  document.getElementById("modalSearch").addEventListener("input", e => {
-    modal.search = e.target.value || "";
-    renderModalTable();
-  });
-});
-</script>
-</body>
-</html>
+  document.addEventListe
