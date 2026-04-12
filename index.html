@@ -27,7 +27,6 @@
     *, *::before, *::after { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* ── HEADER ── */
     header {
       display: flex; align-items: center; gap: 14px;
       padding: 10px 16px;
@@ -53,7 +52,6 @@
       max-width: 480px; overflow: hidden; text-overflow: ellipsis;
     }
 
-    /* ── BUTTONS ── */
     .btn {
       padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
       cursor: pointer; border: none; transition: opacity .15s, transform .1s;
@@ -74,11 +72,9 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── MAIN ── */
     main { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 20px; gap: 12px; overflow: auto; }
     #errorMsg { font-size: 13px; color: var(--danger); white-space: pre-wrap; background: #fee2e2; padding: 10px 12px; border-radius: 10px; display: none; }
 
-    /* ── FILTER PANEL ── */
     .filterPanel {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 14px; padding: 12px 14px;
@@ -94,7 +90,6 @@
     .filterDivider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
     .filterHint { font-size: 11px; color: var(--muted); margin-left: auto; align-self: center; }
 
-    /* Active filter chips */
     .activeFilters {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 14px; padding: 8px 14px;
@@ -112,7 +107,6 @@
     .chipX { cursor: pointer; font-size: 14px; line-height: 1; opacity: .7; }
     .chipX:hover { opacity: 1; }
 
-    /* ── SECTION TITLE ── */
     .sectionTitle {
       display: flex; align-items: center; gap: 10px;
       padding: 9px 14px; background: var(--card);
@@ -126,7 +120,6 @@
       border-radius: 999px; border: 1px solid #bfdbfe;
     }
 
-    /* ── CARDS GRID ── */
     .cards {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 0; border: 1px solid var(--border); border-radius: 14px;
@@ -143,7 +136,6 @@
     .chartWrap { position: relative; flex: 1; min-height: 0; }
     canvas { width: 100% !important; height: 260px !important; }
 
-    /* ── TABLE ── */
     .tableWrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: #fff; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; min-width: 480px; }
     th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; text-align: left; }
@@ -162,7 +154,6 @@
     tr.clickRow:hover td { background: #f1f5f9; }
     tr.selected td { background: #eff6ff !important; outline: 2px solid #bfdbfe; outline-offset: -2px; }
 
-    /* ── EMPTY STATE ── */
     .emptyState {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 8px; padding: 30px; color: var(--muted); font-size: 13px; text-align: center;
@@ -170,7 +161,6 @@
     }
     .emptyState .icon { font-size: 32px; opacity: .5; }
 
-    /* ── MODAL ── */
     #modalOverlay {
       position: fixed; inset: 0; background: rgba(0,0,0,.4);
       z-index: 9999; display: none; align-items: center; justify-content: center; padding: 16px;
@@ -199,13 +189,11 @@
     th.sortable { cursor: pointer; user-select: none; }
     th.sortable:hover { background: #f1f5f9; color: var(--text); }
 
-    /* Status badge colors */
     .s-open     { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
     .s-closed   { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
     .s-progress { background: #fef3c7; color: #92400e; border-color: #fde68a; }
     .s-other    { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
 
-    /* Responsive */
     @media (max-width: 680px) {
       .filterDivider { display: none; }
       select, .filterInput { min-width: 140px; }
@@ -223,7 +211,7 @@
   <div class="titleBlock">
     <div class="title">BCFTopicPulse</div>
     <div class="org">Norconsult Norge</div>
-    <div class="dev">Developed by Norconsult (AI-assisted). Kontakt: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b0f5d4d9de9ef4cad1dbddd9d3f0dedfc2d3dfdec3c5dcc49ed3dfdd">[email&#160;protected]</a></div>
+    <div class="dev">Developed by Norconsult (AI-assisted).</div>
   </div>
   <div class="headerRight">
     <div id="statusMsg"><span class="loading-spinner"></span>Kobler til Trimble Connect…</div>
@@ -234,9 +222,7 @@
 <main>
   <div id="errorMsg"></div>
 
-  <!-- ── FILTER PANEL ── -->
   <div class="filterPanel">
-    <!-- Uke -->
     <div class="filterGroup">
       <label>Fra uke</label>
       <select id="fromWeek"><option value="">(ingen)</option></select>
@@ -249,13 +235,11 @@
 
     <div class="filterDivider"></div>
 
-    <!-- Tildelt bruker -->
     <div class="filterGroup">
       <label>Tildelt bruker</label>
       <select id="assigneeSelect"><option value="">– Alle brukere –</option></select>
     </div>
 
-    <!-- Status -->
     <div class="filterGroup">
       <label>Status</label>
       <select id="statusSelect"><option value="">– Alle statuser –</option></select>
@@ -265,15 +249,13 @@
     <span class="filterHint">Klikk rad i Tag-tabellen for fagfilter</span>
   </div>
 
-  <!-- Active filter chips -->
   <div class="activeFilters" id="activeFilters">
     <span class="filterChipLabel">Aktive filter:</span>
-    <span id="chipTag"   style="display:none" class="filterChip tag"></span>
+    <span id="chipTag" style="display:none" class="filterChip tag"></span>
     <span id="chipStatus" style="display:none" class="filterChip status"></span>
-    <span id="chipUser"  style="display:none" class="filterChip user"></span>
+    <span id="chipUser" style="display:none" class="filterChip user"></span>
   </div>
 
-  <!-- ── TOPIC DASHBOARD ── -->
   <div class="sectionTitle">
     Topic dashboard
     <small>Fag · Trend · Cycle time</small>
@@ -315,7 +297,6 @@
     </div>
   </div>
 
-  <!-- ── VDC DASHBOARD ── -->
   <div class="sectionTitle">
     VDC dashboard
     <small>Created/Closed · Backlog · WIP · Due date</small>
@@ -349,7 +330,6 @@
   </div>
 </main>
 
-<!-- ── MODAL ── -->
 <div id="modalOverlay">
   <div id="modal">
     <div class="modalHeader">
@@ -370,10 +350,7 @@
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// ─────────────────────────────────────────────
-//  CONSTANTS
-// ─────────────────────────────────────────────
+<script>
 if (window.ChartDataLabels) Chart.register(ChartDataLabels);
 
 const TOPICS_API_BASE  = "https://open21.connect.trimble.com";
@@ -385,59 +362,32 @@ const PALETTE = [
   "#14b8a6","#fb923c","#a3e635","#c084fc","#38bdf8"
 ];
 
-// ─────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────
 let API = null, accessToken = null, currentProjectId = null;
 let allTopics = [], allWithDates = [];
-
-// Active filters
-let fWeekFrom   = "";
-let fWeekTo     = "";
-let fTag        = null;   // string | null
-let fAssignee   = "";     // "" = all
-let fStatus     = "";     // "" = all
-
-// Derived topic sets
-let weekFiltered  = [];   // after week filter only
-let fullFiltered  = [];   // after all filters (charts + table)
-
-// Charts registry
+let fWeekFrom = "", fWeekTo = "", fTag = null, fAssignee = "", fStatus = "";
+let weekFiltered = [], fullFiltered = [];
 const CHARTS = {};
+const modal = { tag: null, topics: [], sortKey: "created", sortDir: "desc", search: "" };
 
-// Modal
-const modal = {
-  tag: null, topics: [], sortKey: "created", sortDir: "desc", search: ""
-};
-
-// ─────────────────────────────────────────────
-//  UTILS
-// ─────────────────────────────────────────────
 const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const safe = v  => (v === null || v === undefined) ? "" : String(v).trim();
 const pad2 = n  => String(n).padStart(2,"0");
 
 function setStatus(msg, loading = false){
   const el = document.getElementById("statusMsg");
-  el.innerHTML = loading
-    ? `<span class="loading-spinner"></span>${esc(msg)}`
-    : esc(msg);
+  el.innerHTML = loading ? `<span class="loading-spinner"></span>${esc(msg)}` : esc(msg);
 }
-
 function setError(msg){
   const el = document.getElementById("errorMsg");
   if(msg){ el.textContent = msg; el.style.display = "block"; }
   else   { el.textContent = ""; el.style.display = "none"; }
 }
-
 function parseDateMaybe(v){
   const s = safe(v); if(!s) return null;
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
-
 function fmtDate(d){ if(!d) return ""; return `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`; }
-
 function isoWeek(date){
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const day = d.getUTCDay() || 7;
@@ -446,7 +396,6 @@ function isoWeek(date){
   const wk = Math.ceil((((d - yr) / 86400000) + 1) / 7);
   return `${d.getUTCFullYear()}-W${pad2(wk)}`;
 }
-
 function weekToRange(wk){
   const [yp, wp] = wk.split("-W");
   const year = +yp, week = +wp;
@@ -458,13 +407,9 @@ function weekToRange(wk){
   const end = new Date(start); end.setUTCDate(start.getUTCDate() + 6); end.setUTCHours(23,59,59,999);
   return { start, end };
 }
-
 function uniqSorted(arr){ return [...new Set(arr)].sort((a,b) => a.localeCompare(b)); }
 function avgArr(nums){ const v = nums.filter(Number.isFinite); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
 
-// ─────────────────────────────────────────────
-//  TOPIC FIELD ACCESSORS
-// ─────────────────────────────────────────────
 function getTags(t){
   const c = [];
   if(Array.isArray(t.labels)) c.push(...t.labels);
@@ -473,16 +418,12 @@ function getTags(t){
   if(s) c.push(s);
   return [...new Set(c.map(safe).filter(Boolean))];
 }
-
 function getStatus(t){ return safe(t.topic_status || t.status) || UNKNOWN; }
 function getType(t)  { return safe(t.topic_type   || t.type)   || UNKNOWN; }
-function getPriority(t){ return safe(t.priority)               || UNKNOWN; }
-function getTitle(t) { return safe(t.title || t.topic_title)   || "(uten tittel)"; }
+function getPriority(t){ return safe(t.priority) || UNKNOWN; }
+function getTitle(t) { return safe(t.title || t.topic_title) || "(uten tittel)"; }
 function getId(t)    { return safe(t.guid || t.topic_guid || t.id || t.topic_id); }
-
 function getAssignee(t){
-  // BCF 3.0: assigned_to is a string (email or name)
-  // Also check assignees array (some implementations)
   const direct = safe(t.assigned_to || t.assignedTo || t.assignee);
   if(direct) return direct;
   if(Array.isArray(t.assignees) && t.assignees.length){
@@ -490,23 +431,18 @@ function getAssignee(t){
   }
   return UNKNOWN;
 }
-
 function getClosedDate(t){
   if(!CLOSED_STATUSES.has(getStatus(t))) return null;
   return parseDateMaybe(t.modified_date || t.modifiedDate);
 }
-
 function statusBadgeClass(s){
   const l = s.toLowerCase();
-  if(CLOSED_STATUSES.has(s))         return "s-closed";
+  if(CLOSED_STATUSES.has(s)) return "s-closed";
   if(l.includes("progress") || l.includes("pågår") || l.includes("open")) return "s-progress";
-  if(l === UNKNOWN.toLowerCase())    return "s-other";
+  if(l === UNKNOWN.toLowerCase()) return "s-other";
   return "s-open";
 }
 
-// ─────────────────────────────────────────────
-//  FILTER LOGIC
-// ─────────────────────────────────────────────
 function applyWeekFilter(topics){
   if(!fWeekFrom && !fWeekTo) return topics;
   return topics.filter(t => {
@@ -518,18 +454,14 @@ function applyWeekFilter(topics){
     return true;
   });
 }
-
 function applyAllFilters(topics){
   return topics.filter(t => {
-    // Tag
     if(fTag !== null){
       const tags = getTags(t);
-      if(fTag === UNKNOWN) { if(tags.length)     return false; }
-      else                 { if(!tags.includes(fTag)) return false; }
+      if(fTag === UNKNOWN) { if(tags.length) return false; }
+      else { if(!tags.includes(fTag)) return false; }
     }
-    // Status
     if(fStatus && getStatus(t) !== fStatus) return false;
-    // Assignee
     if(fAssignee){
       const a = getAssignee(t);
       if(a === UNKNOWN && fAssignee !== UNKNOWN) return false;
@@ -539,42 +471,33 @@ function applyAllFilters(topics){
   });
 }
 
-// ─────────────────────────────────────────────
-//  POPULATE FILTER SELECTS
-// ─────────────────────────────────────────────
 function populateWeekSelects(topics){
   const weeks = [];
   for(const t of topics){
     const cd = parseDateMaybe(t.creation_date); if(cd) weeks.push(isoWeek(cd));
-    const cl = getClosedDate(t);               if(cl) weeks.push(isoWeek(cl));
+    const cl = getClosedDate(t); if(cl) weeks.push(isoWeek(cl));
   }
   const uq = uniqSorted(weeks);
   const fromEl = document.getElementById("fromWeek");
-  const toEl   = document.getElementById("toWeek");
+  const toEl = document.getElementById("toWeek");
   const pf = fromEl.value, pt = toEl.value;
   const opts = `<option value="">(ingen)</option>` + uq.map(w => `<option value="${esc(w)}">${esc(w)}</option>`).join("");
   fromEl.innerHTML = toEl.innerHTML = opts;
   if(uq.includes(pf)) fromEl.value = pf;
-  if(uq.includes(pt)) toEl.value   = pt;
+  if(uq.includes(pt)) toEl.value = pt;
 }
-
 function populateAssigneeSelect(topics){
   const names = new Set();
-  for(const t of topics){
-    const a = getAssignee(t);
-    if(a) names.add(a);
-  }
+  for(const t of topics){ const a = getAssignee(t); if(a) names.add(a); }
   const sorted = [...names].sort((a,b) => {
     if(a === UNKNOWN) return 1; if(b === UNKNOWN) return -1;
     return a.localeCompare(b, "nb");
   });
   const el = document.getElementById("assigneeSelect");
   const prev = el.value;
-  el.innerHTML = `<option value="">– Alle brukere –</option>`
-    + sorted.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  el.innerHTML = `<option value="">– Alle brukere –</option>` + sorted.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
   if([...el.options].some(o => o.value === prev)) el.value = prev;
 }
-
 function populateStatusSelect(topics){
   const statuses = new Set();
   for(const t of topics) statuses.add(getStatus(t));
@@ -584,88 +507,62 @@ function populateStatusSelect(topics){
   });
   const el = document.getElementById("statusSelect");
   const prev = el.value;
-  el.innerHTML = `<option value="">– Alle statuser –</option>`
-    + sorted.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  el.innerHTML = `<option value="">– Alle statuser –</option>` + sorted.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
   if([...el.options].some(o => o.value === prev)) el.value = prev;
 }
 
-// ─────────────────────────────────────────────
-//  ACTIVE FILTER CHIPS UI
-// ─────────────────────────────────────────────
 function renderChips(){
   const container = document.getElementById("activeFilters");
-  const chipTag    = document.getElementById("chipTag");
+  const chipTag = document.getElementById("chipTag");
   const chipStatus = document.getElementById("chipStatus");
-  const chipUser   = document.getElementById("chipUser");
-
+  const chipUser = document.getElementById("chipUser");
   let any = false;
 
   if(fTag !== null){
     chipTag.innerHTML = `🏷 ${esc(fTag)} <span class="chipX" data-clear="tag">×</span>`;
     chipTag.style.display = "inline-flex"; any = true;
-  } else { chipTag.style.display = "none"; }
+  } else chipTag.style.display = "none";
 
   if(fStatus){
     chipStatus.innerHTML = `⚡ ${esc(fStatus)} <span class="chipX" data-clear="status">×</span>`;
     chipStatus.style.display = "inline-flex"; any = true;
-  } else { chipStatus.style.display = "none"; }
+  } else chipStatus.style.display = "none";
 
   if(fAssignee){
     chipUser.innerHTML = `👤 ${esc(fAssignee)} <span class="chipX" data-clear="user">×</span>`;
     chipUser.style.display = "inline-flex"; any = true;
-  } else { chipUser.style.display = "none"; }
+  } else chipUser.style.display = "none";
 
   container.classList.toggle("visible", any);
 }
 
-// ─────────────────────────────────────────────
-//  CHART HELPERS
-// ─────────────────────────────────────────────
-function destroyChart(key){
-  if(CHARTS[key]){ CHARTS[key].destroy(); delete CHARTS[key]; }
-}
-
+function destroyChart(key){ if(CHARTS[key]){ CHARTS[key].destroy(); delete CHARTS[key]; } }
 function freshCanvas(id){
-  // Replace canvas to avoid Chart.js "canvas already in use" errors
-  const old = document.getElementById(id);
-  if(!old) return null;
+  const old = document.getElementById(id); if(!old) return null;
   const parent = old.parentElement;
-  const nc = document.createElement("canvas");
-  nc.id = id;
+  const nc = document.createElement("canvas"); nc.id = id;
   parent.replaceChild(nc, old);
   return nc.getContext("2d");
 }
-
 function noDataOverlay(id, msg = "Ingen data å vise"){
-  const canvas = document.getElementById(id);
-  if(!canvas) return;
+  const canvas = document.getElementById(id); if(!canvas) return;
   const parent = canvas.parentElement;
-  // Replace canvas with empty state
   const div = document.createElement("div");
-  div.className = "emptyState";
-  div.id = id + "_empty";
+  div.className = "emptyState"; div.id = id + "_empty";
   div.innerHTML = `<div class="icon">📭</div><div>${esc(msg)}</div>`;
-  // Keep canvas in DOM (hidden) so ID still exists for next render
   canvas.style.display = "none";
   if(!document.getElementById(id + "_empty")) parent.appendChild(div);
 }
-
 function clearEmptyOverlay(id){
-  const el = document.getElementById(id + "_empty");
-  if(el) el.remove();
-  const canvas = document.getElementById(id);
-  if(canvas) canvas.style.display = "";
+  const el = document.getElementById(id + "_empty"); if(el) el.remove();
+  const canvas = document.getElementById(id); if(canvas) canvas.style.display = "";
 }
-
 function buildBar(id, labels, datasets, stacked = false){
   clearEmptyOverlay(id);
   if(!labels.length){ noDataOverlay(id); return null; }
   destroyChart(id);
   const ctx = freshCanvas(id); if(!ctx) return null;
-  const ds = datasets.map((d, i) => ({
-    backgroundColor: d.color || PALETTE[i % PALETTE.length],
-    borderRadius: 3, ...d
-  }));
+  const ds = datasets.map((d, i) => ({ backgroundColor: d.color || PALETTE[i % PALETTE.length], borderRadius: 3, ...d }));
   CHARTS[id] = new Chart(ctx, {
     type: "bar",
     data: { labels, datasets: ds },
@@ -680,7 +577,6 @@ function buildBar(id, labels, datasets, stacked = false){
   });
   return CHARTS[id];
 }
-
 function buildLine(id, labels, datasets){
   clearEmptyOverlay(id);
   if(!labels.length){ noDataOverlay(id); return null; }
@@ -688,8 +584,7 @@ function buildLine(id, labels, datasets){
   const ctx = freshCanvas(id); if(!ctx) return null;
   const ds = datasets.map((d, i) => ({
     borderColor: d.color || PALETTE[i % PALETTE.length],
-    backgroundColor: "transparent",
-    tension: 0.25, pointRadius: 2, borderWidth: 2, ...d
+    backgroundColor: "transparent", tension: 0.25, pointRadius: 2, borderWidth: 2, ...d
   }));
   CHARTS[id] = new Chart(ctx, {
     type: "line",
@@ -705,12 +600,10 @@ function buildLine(id, labels, datasets){
   });
   return CHARTS[id];
 }
-
 function buildMultiLine(id, labels, keys, seriesMap){
   const datasets = keys.map((k, i) => ({ label: k, data: seriesMap[k], color: PALETTE[i % PALETTE.length] }));
   return buildLine(id, labels, datasets);
 }
-
 function buildPie(id, labels, data, onClickLabel){
   clearEmptyOverlay(id);
   if(!labels.length || !data.some(v => v > 0)){ noDataOverlay(id); return null; }
@@ -729,23 +622,18 @@ function buildPie(id, labels, data, onClickLabel){
       },
       plugins: {
         legend: { display: true, position: "right", labels: { font: { size: 11 }, boxWidth: 12 } },
-        tooltip: {
-          callbacks: {
-            label: c => {
-              const v = c.parsed ?? 0;
-              return `${c.label}: ${v} (${total ? ((v/total)*100).toFixed(1) : 0}%)`;
-            }
-          }
-        },
+        tooltip: { callbacks: { label: c => {
+          const v = c.parsed ?? 0;
+          return `${c.label}: ${v} (${total ? ((v/total)*100).toFixed(1) : 0}%)`;
+        }}},
         datalabels: {
-          formatter: (value, ctx) => {
-            const sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+          formatter: (value, ctx2) => {
+            const sum = ctx2.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
             if(!sum) return "";
             const pct = (value/sum)*100;
             return pct < 4 ? "" : `${pct.toFixed(0)}%`;
           },
-          font: { weight: "bold", size: 11 },
-          color: "#fff",
+          font: { weight: "bold", size: 11 }, color: "#fff"
         }
       }
     }
@@ -753,35 +641,29 @@ function buildPie(id, labels, data, onClickLabel){
   return CHARTS[id];
 }
 
-// ─────────────────────────────────────────────
-//  AGGREGATIONS
-// ─────────────────────────────────────────────
 function weekLabels(topics){
   const wks = [];
   for(const t of topics){
     const cd = parseDateMaybe(t.creation_date); if(cd) wks.push(isoWeek(cd));
-    const cl = getClosedDate(t);               if(cl) wks.push(isoWeek(cl));
+    const cl = getClosedDate(t); if(cl) wks.push(isoWeek(cl));
   }
   return uniqSorted(wks);
 }
-
 function aggByWeek(topics, getCategory){
   const buckets = {}, catSet = new Set();
   for(const t of topics){
     const cd = parseDateMaybe(t.creation_date); if(!cd) continue;
-    const b = isoWeek(cd);
-    const cat = safe(getCategory(t)) || UNKNOWN;
+    const b = isoWeek(cd), cat = safe(getCategory(t)) || UNKNOWN;
     catSet.add(cat);
     if(!buckets[b]) buckets[b] = {};
     buckets[b][cat] = (buckets[b][cat] || 0) + 1;
   }
   const labels = uniqSorted(Object.keys(buckets));
-  const keys   = [...catSet].sort((a,b) => a.localeCompare(b));
+  const keys = [...catSet].sort((a,b) => a.localeCompare(b));
   const series = {};
   for(const k of keys) series[k] = labels.map(b => buckets[b]?.[k] || 0);
   return { labels, keys, series };
 }
-
 function aggTagCounts(topics){
   const counts = {};
   for(const t of topics){
@@ -790,7 +672,6 @@ function aggTagCounts(topics){
   }
   return counts;
 }
-
 function aggTagStatusMatrix(topics){
   const matrix = {}, totals = {}, statusSet = new Set();
   for(const t of topics){
@@ -802,11 +683,10 @@ function aggTagStatusMatrix(topics){
       totals[tag] = (totals[tag] || 0) + 1;
     }
   }
-  const tags     = Object.keys(matrix).sort((a,b) => a.localeCompare(b));
+  const tags = Object.keys(matrix).sort((a,b) => a.localeCompare(b));
   const statuses = [...statusSet].sort((a,b) => a.localeCompare(b));
   return { tags, statuses, matrix, totals };
 }
-
 function aggCycleTime(topics){
   const byWk = {}, all = [];
   for(const t of topics){
@@ -819,13 +699,12 @@ function aggCycleTime(topics){
     if(!byWk[b]) byWk[b] = [];
     byWk[b].push(days);
   }
-  const labels    = uniqSorted(Object.keys(byWk));
-  const series    = labels.map(b => { const a = avgArr(byWk[b]); return a === null ? null : Math.round(a); });
+  const labels = uniqSorted(Object.keys(byWk));
+  const series = labels.map(b => { const a = avgArr(byWk[b]); return a === null ? null : Math.round(a); });
   const globalAvg = avgArr(all);
-  const gLine     = labels.map(() => globalAvg === null ? null : Math.round(globalAvg));
+  const gLine = labels.map(() => globalAvg === null ? null : Math.round(globalAvg));
   return { labels, series, gLine };
 }
-
 function aggCreatedClosed(topics, wks){
   const cmap = {}, dmap = {};
   for(const w of wks){ cmap[w] = 0; dmap[w] = 0; }
@@ -837,7 +716,6 @@ function aggCreatedClosed(topics, wks){
   }
   return { created: wks.map(w => cmap[w]||0), closed: wks.map(w => dmap[w]||0) };
 }
-
 function aggWip(topics, wks){
   const items = topics.map(t => ({ cd: parseDateMaybe(t.creation_date), cl: getClosedDate(t) })).filter(x => x.cd);
   return wks.map(w => {
@@ -845,7 +723,6 @@ function aggWip(topics, wks){
     return items.filter(it => it.cd.getTime() <= end && (!it.cl || it.cl.getTime() > end)).length;
   });
 }
-
 function aggDueDate(topics, wks){
   const onT = {}, late = {}; let found = false;
   for(const w of wks){ onT[w] = 0; late[w] = 0; }
@@ -859,20 +736,14 @@ function aggDueDate(topics, wks){
   return { found, onTime: wks.map(w => onT[w]||0), late: wks.map(w => late[w]||0) };
 }
 
-// ─────────────────────────────────────────────
-//  RENDER TAG TABLE
-// ─────────────────────────────────────────────
 function renderTagTable(matrix){
   const { tags, statuses, matrix: mx, totals } = matrix;
   const wrap = document.getElementById("tagTableWrap");
-
   if(!tags.length){ wrap.innerHTML = `<div class="emptyState"><div class="icon">📭</div><div>Ingen tags funnet</div></div>`; return; }
 
-  const header = `<th>Fag (Tag)</th><th class="right">Total</th>`
-    + statuses.map(s => `<th class="right">${esc(s)}</th>`).join("");
-
+  const header = `<th>Fag (Tag)</th><th class="right">Total</th>` + statuses.map(s => `<th class="right">${esc(s)}</th>`).join("");
   const rows = tags.map(tag => {
-    const total  = totals[tag] || 0;
+    const total = totals[tag] || 0;
     const isActive = fTag === tag;
     return `<tr class="clickRow${isActive ? " selected" : ""}" data-tag="${esc(tag)}">
       <td><span class="pill">${esc(tag)}</span></td>
@@ -882,56 +753,42 @@ function renderTagTable(matrix){
   }).join("");
 
   wrap.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>`;
-
   wrap.querySelectorAll("tr.clickRow").forEach(tr => {
     tr.addEventListener("click", () => {
       const tag = tr.getAttribute("data-tag");
-      fTag = (fTag === tag) ? null : tag;  // toggle
+      fTag = (fTag === tag) ? null : tag;
       renderChips();
       doRender();
     });
   });
 }
 
-// ─────────────────────────────────────────────
-//  USER STATUS VIEW  (replaces tag-pie when assignee filter is active)
-// ─────────────────────────────────────────────
 function renderUserStatusView(topics){
   const titleEl = document.getElementById("firstCardTitle");
   const noteEl  = document.getElementById("firstCardNote");
   const wrapEl  = document.getElementById("tagTableWrap");
 
-  // Friendly display name (strip email domain for readability if it looks like email)
   const displayName = fAssignee.includes("@")
-    ? fAssignee.split("@")[0].replace(/[._]/g, " ").replace(/\w/g, c => c.toUpperCase())
+    ? fAssignee.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, c => c.toUpperCase())
     : fAssignee;
 
   titleEl.textContent = `👤 ${displayName} — statusoversikt (${topics.length} saker)`;
   noteEl.textContent  = "Velger du bort brukeren vises fagvis oversikt igjen.";
 
-  // ── Status pie ──
   const statusCounts = {};
   for(const t of topics){
     const st = getStatus(t);
     statusCounts[st] = (statusCounts[st] || 0) + 1;
   }
 
-  // Sort: closed last, open first
   const statusOrder = s => CLOSED_STATUSES.has(s) ? 1 : 0;
   const labels = Object.keys(statusCounts).sort((a,b) => statusOrder(a) - statusOrder(b) || a.localeCompare(b));
   const data   = labels.map(l => statusCounts[l]);
 
-  // Use status-appropriate colors
   const statusColors = {
-    "Open":     "#3b82f6",
-    "Active":   "#3b82f6",
-    "Åpen":     "#3b82f6",
-    "In Progress": "#f59e0b",
-    "Pågår":    "#f59e0b",
-    "Closed":   "#10b981",
-    "Done":     "#10b981",
-    "Resolved": "#10b981",
-    "Approved": "#16a34a",
+    "Open": "#3b82f6", "Active": "#3b82f6", "Åpen": "#3b82f6",
+    "In Progress": "#f59e0b", "Pågår": "#f59e0b",
+    "Closed": "#10b981", "Done": "#10b981", "Resolved": "#10b981", "Approved": "#16a34a",
     "Rejected": "#ef4444",
   };
   const colors = labels.map((l, i) => statusColors[l] || PALETTE[i % PALETTE.length]);
@@ -954,21 +811,16 @@ function renderUserStatusView(topics){
         responsive: true,
         plugins: {
           legend: { display: true, position: "right", labels: { font: { size: 12 }, boxWidth: 14 } },
-          tooltip: {
-            callbacks: {
-              label: c => {
-                const v = c.parsed ?? 0;
-                return `${c.label}: ${v} saker (${total ? ((v/total)*100).toFixed(1) : 0}%)`;
-              }
-            }
-          },
+          tooltip: { callbacks: { label: c => {
+            const v = c.parsed ?? 0;
+            return `${c.label}: ${v} saker (${total ? ((v/total)*100).toFixed(1) : 0}%)`;
+          }}},
           datalabels: {
             formatter: (value, ctx2) => {
               const sum = ctx2.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
               if(!sum) return "";
               const pct = (value/sum)*100;
-              return pct < 5 ? "" : `${value}
-(${pct.toFixed(0)}%)`;
+              return pct < 5 ? "" : `${value}\n(${pct.toFixed(0)}%)`;
             },
             font: { weight: "bold", size: 12 },
             color: "#fff",
@@ -979,16 +831,15 @@ function renderUserStatusView(topics){
     });
   }
 
-  // ── Status summary table below pie ──
   const closedCount = labels.filter(l => CLOSED_STATUSES.has(l)).reduce((s,l) => s + (statusCounts[l]||0), 0);
   const openCount   = topics.length - closedCount;
   const pctClosed   = topics.length ? Math.round((closedCount / topics.length) * 100) : 0;
 
   const rows = labels.map(l => {
-    const cnt  = statusCounts[l] || 0;
-    const pct  = topics.length ? ((cnt / topics.length) * 100).toFixed(1) : "0.0";
-    const cls  = statusBadgeClass(l);
-    const bar  = `<div style="width:${pct}%;min-width:${cnt?3:0}px;height:6px;border-radius:3px;background:${statusColors[l]||'#94a3b8'};"></div>`;
+    const cnt = statusCounts[l] || 0;
+    const pct = topics.length ? ((cnt / topics.length) * 100).toFixed(1) : "0.0";
+    const cls = statusBadgeClass(l);
+    const bar = `<div style="width:${pct}%;min-width:${cnt?3:0}px;height:6px;border-radius:3px;background:${statusColors[l]||'#94a3b8'};"></div>`;
     return `<tr>
       <td><span class="pill ${cls}">${esc(l)}</span></td>
       <td class="right"><b>${cnt}</b></td>
@@ -1014,57 +865,41 @@ function renderUserStatusView(topics){
     </table>`;
 }
 
-// ─────────────────────────────────────────────
-//  MAIN RENDER
-// ─────────────────────────────────────────────
 function doRender(){
   fullFiltered = applyAllFilters(weekFiltered);
-
-  // Count badge
   document.getElementById("topicCountBadge").textContent = `${fullFiltered.length} topics`;
 
-  // ── Topic dashboard — first card switches based on active assignee filter ──
   if(fAssignee){
-    // BRUKER-MODUS: Vis statusfordeling for valgt bruker som kakediagram
     renderUserStatusView(fullFiltered);
   } else {
-    // FAGNIVÅ-MODUS: Vis fagvis (Tag) fordeling — bruker weekFiltered (ufiltrert på tag/status)
     const tagCounts = aggTagCounts(weekFiltered);
-    buildPie("tagPieChart",
-      Object.keys(tagCounts), Object.values(tagCounts),
-      tag => openModal(tag)
-    );
+    buildPie("tagPieChart", Object.keys(tagCounts), Object.values(tagCounts), tag => openModal(tag));
     renderTagTable(aggTagStatusMatrix(weekFiltered));
     document.getElementById("firstCardTitle").textContent = "Fag (Tag) — antall saker + statusoversikt";
     document.getElementById("firstCardNote").textContent  = "Klikk kakestykke → åpne topics. Klikk rad → filtrer dashboard.";
   }
 
-  // Trend charts use fullFiltered
   const byStatus   = aggByWeek(fullFiltered, getStatus);
   const byType     = aggByWeek(fullFiltered, getType);
   const byPriority = aggByWeek(fullFiltered, getPriority);
-
-  buildMultiLine("statusLineChart",   byStatus.labels,   byStatus.keys,   byStatus.series);
-  buildMultiLine("typeLineChart",     byType.labels,     byType.keys,     byType.series);
+  buildMultiLine("statusLineChart", byStatus.labels, byStatus.keys, byStatus.series);
+  buildMultiLine("typeLineChart", byType.labels, byType.keys, byType.series);
   buildMultiLine("priorityLineChart", byPriority.labels, byPriority.keys, byPriority.series);
 
   const ct = aggCycleTime(fullFiltered);
   buildLine("cycleTimeChart", ct.labels, [
-    { label: "Snitt per uke (dager)",   data: ct.series,  color: PALETTE[0] },
-    { label: "Globalt snitt (dager)",   data: ct.gLine,   color: PALETTE[3], borderDash: [6,4] }
+    { label: "Snitt per uke (dager)", data: ct.series, color: PALETTE[0] },
+    { label: "Globalt snitt (dager)", data: ct.gLine, color: PALETTE[3], borderDash: [6,4] }
   ]);
 
   const createdAgg = aggByWeek(fullFiltered, () => "");
-  buildBar("createdChart", createdAgg.labels,
-    [{ label: "Opprettede topics", data: createdAgg.series[""] || [], color: PALETTE[0] }]);
+  buildBar("createdChart", createdAgg.labels, [{ label: "Opprettede topics", data: createdAgg.series[""] || [], color: PALETTE[0] }]);
 
-  // ── VDC dashboard ──
   const wks = weekLabels(fullFiltered);
-
   const cc = aggCreatedClosed(fullFiltered, wks);
   buildBar("createdClosedChart", wks, [
     { label: "Created", data: cc.created, color: PALETTE[0] },
-    { label: "Closed",  data: cc.closed,  color: PALETTE[1] }
+    { label: "Closed", data: cc.closed, color: PALETTE[1] }
   ]);
 
   let cum = 0;
@@ -1082,22 +917,19 @@ function doRender(){
     dd.found ? wks : ["–"],
     [
       { label: "On-time", data: dd.found ? dd.onTime : [0], color: PALETTE[1] },
-      { label: "Late",    data: dd.found ? dd.late   : [0], color: PALETTE[3] }
+      { label: "Late", data: dd.found ? dd.late : [0], color: PALETTE[3] }
     ],
     true
   );
 }
 
-// ─────────────────────────────────────────────
-//  MODAL
-// ─────────────────────────────────────────────
 function openModal(tag){
-  modal.tag     = tag;
+  modal.tag = tag;
   modal.sortKey = "created";
   modal.sortDir = "desc";
-  modal.search  = "";
+  modal.search = "";
   document.getElementById("modalTag").textContent = tag;
-  document.getElementById("modalSearch").value    = "";
+  document.getElementById("modalSearch").value = "";
 
   modal.topics = weekFiltered.filter(t => {
     const tags = getTags(t);
@@ -1109,65 +941,56 @@ function openModal(tag){
   document.getElementById("modalSearch").focus();
   renderModalTable();
 }
-
 function closeModal(){ document.getElementById("modalOverlay").classList.remove("open"); }
-
 function updateModalMeta(){
   const list = applyModalSort(applyModalSearch(modal.topics));
   const wkRange = (!fWeekFrom && !fWeekTo) ? "Alle uker" : `${fWeekFrom||"(start)"} → ${fWeekTo||"(slutt)"}`;
-  document.getElementById("modalMeta").textContent =
-    `Periode: ${wkRange} · Viser: ${list.length}/${modal.topics.length} topics`;
+  document.getElementById("modalMeta").textContent = `Periode: ${wkRange} · Viser: ${list.length}/${modal.topics.length} topics`;
 }
-
 function applyModalSearch(list){
   const q = modal.search.toLowerCase();
   if(!q) return list;
   return list.filter(t => {
     const hay = [
       fmtDate(parseDateMaybe(t.creation_date)),
-      getStatus(t), getType(t), getPriority(t),
-      getTitle(t), getId(t), getAssignee(t)
+      getStatus(t), getType(t), getPriority(t), getTitle(t), getId(t), getAssignee(t)
     ].join(" ").toLowerCase();
     return hay.includes(q);
   });
 }
-
 function applyModalSort(list){
   const dir = modal.sortDir === "asc" ? 1 : -1;
   return [...list].sort((a, b) => {
     let cmp = 0;
     switch(modal.sortKey){
-      case "created":  cmp = (parseDateMaybe(a.creation_date)?.getTime()||0) - (parseDateMaybe(b.creation_date)?.getTime()||0); break;
-      case "status":   cmp = getStatus(a).localeCompare(getStatus(b)); break;
-      case "type":     cmp = getType(a).localeCompare(getType(b)); break;
+      case "created": cmp = (parseDateMaybe(a.creation_date)?.getTime()||0) - (parseDateMaybe(b.creation_date)?.getTime()||0); break;
+      case "status": cmp = getStatus(a).localeCompare(getStatus(b)); break;
+      case "type": cmp = getType(a).localeCompare(getType(b)); break;
       case "priority": cmp = getPriority(a).localeCompare(getPriority(b)); break;
       case "assignee": cmp = getAssignee(a).localeCompare(getAssignee(b)); break;
-      case "title":    cmp = getTitle(a).localeCompare(getTitle(b)); break;
-      case "id":       cmp = getId(a).localeCompare(getId(b)); break;
-      default:         cmp = 0;
+      case "title": cmp = getTitle(a).localeCompare(getTitle(b)); break;
+      case "id": cmp = getId(a).localeCompare(getId(b)); break;
     }
     return cmp * dir;
   });
 }
-
 function renderModalTable(){
   const wrap = document.getElementById("modalTableWrap");
   const list = applyModalSort(applyModalSearch(modal.topics));
-
   const arr = s => modal.sortKey === s ? (modal.sortDir === "asc" ? " ▲" : " ▼") : "";
   const mkTh = (key, label) => `<th class="sortable" data-sort="${key}">${label}${arr(key)}</th>`;
 
   const rows = list.map(t => {
-    const st = getStatus(t);
-    const sc = statusBadgeClass(st);
+    const st = getStatus(t), sc = statusBadgeClass(st);
     const due = parseDateMaybe(t.due_date || t.dueDate || t.duedate);
     const dueStr = due ? fmtDate(due) : "–";
     const closedDate = getClosedDate(t);
     const isLate = due && closedDate && closedDate > due;
     const dueCell = due
-      ? `<span class="pill${isLate ? ' s-closed' : ''}" style="${isLate ? 'background:#fee2e2;color:#991b1b;border-color:#fecaca' : ''}">${esc(dueStr)}${isLate ? " ⚠" : ""}</span>`
+      ? `<span class="pill" style="${isLate ? 'background:#fee2e2;color:#991b1b;border-color:#fecaca' : ''}">${esc(dueStr)}${isLate ? " ⚠" : ""}</span>`
       : "–";
 
+    const id = getId(t);
     return `<tr>
       <td>${esc(fmtDate(parseDateMaybe(t.creation_date)))}</td>
       <td><span class="pill ${sc}">${esc(st)}</span></td>
@@ -1176,7 +999,7 @@ function renderModalTable(){
       <td>${esc(getAssignee(t))}</td>
       <td>${dueCell}</td>
       <td title="${esc(getTitle(t))}" style="white-space:normal;max-width:260px;">${esc(getTitle(t))}</td>
-      <td><code style="font-size:10px;">${esc(getId(t).substring(0,12))}…</code></td>
+      <td><code style="font-size:10px;">${esc(id ? id.substring(0,12) : "")}${id ? "…" : ""}</code></td>
     </tr>`;
   }).join("");
 
@@ -1207,15 +1030,10 @@ function renderModalTable(){
   updateModalMeta();
 }
 
-// ─────────────────────────────────────────────
-//  CSV EXPORT
-// ─────────────────────────────────────────────
 function csvEsc(v){
   const s = safe(v);
-  return (s.includes('"') || s.includes(",") || s.includes("\n"))
-    ? `"${s.replace(/"/g,'""')}"` : s;
+  return (s.includes('"') || s.includes(",") || s.includes("\n")) ? `"${s.replace(/"/g,'""')}"` : s;
 }
-
 function exportModalCsv(){
   const list = applyModalSort(applyModalSearch(modal.topics));
   const header = ["Tag","Opprettet","Status","Type","Prioritet","Tildelt","Due dato","Tittel","GUID/ID"].map(csvEsc).join(",");
@@ -1231,21 +1049,17 @@ function exportModalCsv(){
   const tag = (modal.tag || "tag").replace(/[^a-zA-Z0-9_-]/g,"_");
   downloadFile(`BCF_Topics_${tag}_${wk}.csv`, csv, "text/csv;charset=utf-8");
 }
-
 function downloadFile(name, content, mime){
   const blob = new Blob([content], { type: mime });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement("a"), { href: url, download: name });
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
 
-// ─────────────────────────────────────────────
-//  API
-// ─────────────────────────────────────────────
 async function fetchTopics(projectId){
   if(!accessToken) throw new Error("Mangler accessToken.");
-  const url  = `${TOPICS_API_BASE}/bcf/3.0/projects/${encodeURIComponent(projectId)}/topics`;
+  const url = `${TOPICS_API_BASE}/bcf/3.0/projects/${encodeURIComponent(projectId)}/topics`;
   const resp = await fetch(url, {
     headers: { "Authorization": `Bearer ${accessToken}`, "Accept": "application/json" }
   });
@@ -1256,13 +1070,12 @@ async function fetchTopics(projectId){
   const json = await resp.json();
   return Array.isArray(json) ? json : [];
 }
-
 async function refreshData(){
   document.getElementById("refreshBtn").disabled = true;
   setError("");
   setStatus("Henter BCF Topics…", true);
   try{
-    allTopics    = await fetchTopics(currentProjectId);
+    allTopics = await fetchTopics(currentProjectId);
     allWithDates = allTopics.filter(t => !!parseDateMaybe(t.creation_date));
 
     if(!allWithDates.length){
@@ -1271,15 +1084,12 @@ async function refreshData(){
       return;
     }
 
-    // Populate selects
     populateWeekSelects(allWithDates);
     populateAssigneeSelect(allWithDates);
     populateStatusSelect(allWithDates);
 
-    // Apply filters & render
     weekFiltered = applyWeekFilter(allWithDates);
     doRender();
-
     setStatus(`✓ Oppdatert ${new Date().toLocaleString("nb-NO")} · ${fullFiltered.length}/${allWithDates.length} topics`);
   } catch(err){
     console.error(err);
@@ -1290,9 +1100,6 @@ async function refreshData(){
   }
 }
 
-// ─────────────────────────────────────────────
-//  TRIMBLE CONNECT INIT
-// ─────────────────────────────────────────────
 function handleToken(payload){
   if(!payload) return;
   if(typeof payload === "string"){
@@ -1311,7 +1118,6 @@ function handleToken(payload){
     }
   }
 }
-
 async function init(){
   setError("");
   setStatus("Kobler til Trimble Connect…", true);
@@ -1332,68 +1138,71 @@ async function init(){
   }
 }
 
-// ─────────────────────────────────────────────
-//  EVENT LISTENERS
-// ─────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   init();
 
-  // Week filter apply
   document.getElementById("applyWeekBtn").addEventListener("click", () => {
     if(!allWithDates.length) return;
-    fWeekFrom    = document.getElementById("fromWeek").value;
-    fWeekTo      = document.getElementById("toWeek").value;
+    fWeekFrom = document.getElementById("fromWeek").value;
+    fWeekTo = document.getElementById("toWeek").value;
     weekFiltered = applyWeekFilter(allWithDates);
-    // Repopulate assignee+status after week change
     populateAssigneeSelect(weekFiltered);
     populateStatusSelect(weekFiltered);
     renderChips();
     doRender();
   });
 
-  // Assignee filter
   document.getElementById("assigneeSelect").addEventListener("change", e => {
     fAssignee = e.target.value;
     renderChips();
     doRender();
   });
 
-  // Status filter
   document.getElementById("statusSelect").addEventListener("change", e => {
     fStatus = e.target.value;
     renderChips();
     doRender();
   });
 
-  // Clear all filters
   document.getElementById("clearFiltersBtn").addEventListener("click", () => {
     fTag = null; fAssignee = ""; fStatus = "";
     document.getElementById("assigneeSelect").value = "";
-    document.getElementById("statusSelect").value   = "";
+    document.getElementById("statusSelect").value = "";
     renderChips();
     doRender();
   });
 
-  // Chips click (remove individual)
   document.getElementById("activeFilters").addEventListener("click", e => {
     const clear = e.target.closest(".chipX");
     if(!clear) return;
     const type = clear.getAttribute("data-clear");
-    if(type === "tag")    fTag = null;
+    if(type === "tag") fTag = null;
     if(type === "status"){ fStatus = ""; document.getElementById("statusSelect").value = ""; }
-    if(type === "user")  { fAssignee = ""; document.getElementById("assigneeSelect").value = ""; }
+    if(type === "user"){ fAssignee = ""; document.getElementById("assigneeSelect").value = ""; }
     renderChips();
     doRender();
   });
 
-  // Refresh
   document.getElementById("refreshBtn").addEventListener("click", refreshData);
-  document.getElementById("refreshBtn").disabled = false;
 
-  // Modal
   document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
   document.getElementById("modalCsvBtn").addEventListener("click", exportModalCsv);
+  document.getElementById("modalSearch").addEventListener("input", e => {
+    modal.search = e.target.value || "";
+    renderModalTable();
+  });
   document.getElementById("modalOverlay").addEventListener("click", e => {
     if(e.target === document.getElementById("modalOverlay")) closeModal();
   });
-  document.addEventListe
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape" && document.getElementById("modalOverlay").classList.contains("open")) closeModal();
+  });
+});
+
+window.addEventListener("error", e => {
+  console.error("BCFTopicPulse runtime error:", e.error || e.message);
+  setError("JavaScript-feil: " + (e.message || "Ukjent feil"));
+});
+</script>
+</body>
+</html>
