@@ -37,36 +37,87 @@
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 0 20px;
+      padding: 12px 18px;
       display: flex;
       align-items: center;
       gap: 16px;
-      height: 60px;
+      min-height: 116px;
       flex-shrink: 0;
       position: sticky;
       top: 0;
       z-index: 100;
     }
+
     .logo-box {
-      width: 36px; height: 36px;
-      border-radius: 8px;
+      width: 138px;
+      height: 92px;
+      border-radius: 12px;
       border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden; flex-shrink: 0;
       background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
     }
-    .logo-box img { width: 30px; height: 30px; object-fit: contain; }
-    .app-name { font-size: 16px; font-weight: 800; color: var(--blue); letter-spacing: -.3px; }
-    .app-sub  { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    .logo-box img {
+      width: 128px;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .title-area {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .app-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--blue);
+      letter-spacing: -.3px;
+      line-height: 1.1;
+    }
+
+    .app-sub {
+      font-size: 14px;
+      color: var(--text);
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+
+    .app-devline {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 2px;
+      line-height: 1.35;
+      white-space: normal;
+    }
 
     .header-right {
       margin-left: auto;
-      display: flex; align-items: center; gap: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      min-width: 220px;
     }
+
     #status {
-      font-size: 12px; color: var(--muted);
-      white-space: nowrap; max-width: 420px;
-      overflow: hidden; text-overflow: ellipsis;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: right;
     }
 
     .btn {
@@ -347,6 +398,22 @@
     .click-row { cursor: pointer; }
     .click-row:hover td { background: #EBF2FC; }
 
+    @media (max-width: 1024px) {
+      header {
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .header-right {
+        width: 100%;
+        margin-left: 0;
+        align-items: flex-start;
+      }
+      #status {
+        max-width: 100%;
+        text-align: left;
+      }
+    }
+
     @media (max-width: 920px) {
       .grid { grid-template-columns: 1fr; }
       .modal-header { flex-direction: column; align-items: stretch; }
@@ -354,6 +421,22 @@
       #topicsModalSearch { width: 100%; }
       .topic-hero-card { min-height: 440px; }
       .topic-hero-chart { min-height: 320px; }
+      .logo-box {
+        width: 100px;
+        height: 74px;
+      }
+      .logo-box img {
+        width: 92px;
+      }
+      .app-name {
+        font-size: 17px;
+      }
+      .app-sub {
+        font-size: 13px;
+      }
+      .app-devline {
+        font-size: 11px;
+      }
     }
   </style>
 </head>
@@ -363,12 +446,15 @@
   <header>
     <div class="logo-box">
       <img src="norconsult-logo-black.png" alt="Norconsult"
-           onerror="this.style.display='none'; this.parentElement.textContent='N';">
+           onerror="this.style.display='none'; this.parentElement.textContent='Norconsult'; this.parentElement.style.fontWeight='800'; this.parentElement.style.fontSize='18px';">
     </div>
-    <div>
+
+    <div class="title-area">
       <div class="app-name">BCFTopicPulse</div>
       <div class="app-sub">Norconsult Norge</div>
+      <div class="app-devline">Developed by Norconsult, (AI-assisted development). Kontaktperson: Edin.Dzakmic@norconsult.com</div>
     </div>
+
     <div class="header-right">
       <div id="status"><span class="spinner"></span>Kobler til Trimble Connect…</div>
       <button class="btn btn-primary" id="refreshBtn">↻ Oppdater</button>
