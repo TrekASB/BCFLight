@@ -49,7 +49,7 @@
     .headerRight { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
     #statusMsg {
       font-size: 12px; opacity: .85; white-space: nowrap;
-      max-width: 480px; overflow: hidden; text-overflow: ellipsis;
+      max-width: 560px; overflow: hidden; text-overflow: ellipsis;
     }
 
     .btn {
@@ -74,6 +74,32 @@
 
     main { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 20px; gap: 12px; overflow: auto; }
     #errorMsg { font-size: 13px; color: var(--danger); white-space: pre-wrap; background: #fee2e2; padding: 10px 12px; border-radius: 10px; display: none; }
+
+    .topTabs {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px;
+    }
+    .topTabBtn {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .topTabBtn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .pageView { display: none; flex-direction: column; gap: 12px; }
+    .pageView.active { display: flex; }
 
     .filterPanel {
       background: var(--card); border: 1px solid var(--border);
@@ -194,6 +220,28 @@
     .s-progress { background: #fef3c7; color: #92400e; border-color: #fde68a; }
     .s-other    { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
 
+    .issueActions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .miniBtn {
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+    }
+    .miniBtn:hover { background: #f8fafc; }
+
+    .issueLayout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
     @media (max-width: 680px) {
       .filterDivider { display: none; }
       select, .filterInput { min-width: 140px; }
@@ -222,112 +270,152 @@
 <main>
   <div id="errorMsg"></div>
 
-  <div class="filterPanel">
-    <div class="filterGroup">
-      <label>Fra uke</label>
-      <select id="fromWeek"><option value="">(ingen)</option></select>
-    </div>
-    <div class="filterGroup">
-      <label>Til uke</label>
-      <select id="toWeek"><option value="">(ingen)</option></select>
-    </div>
-    <button class="btn btn-primary btn-sm" id="applyWeekBtn">Bruk</button>
-
-    <div class="filterDivider"></div>
-
-    <div class="filterGroup">
-      <label>Tildelt bruker</label>
-      <select id="assigneeSelect"><option value="">– Alle brukere –</option></select>
-    </div>
-
-    <div class="filterGroup">
-      <label>Status</label>
-      <select id="statusSelect"><option value="">– Alle statuser –</option></select>
-    </div>
-
-    <button class="btn btn-ghost btn-sm" id="clearFiltersBtn">✕ Nullstill filter</button>
-    <span class="filterHint">Klikk rad i Tag-tabellen for fagfilter</span>
+  <div class="topTabs">
+    <button class="topTabBtn active" id="tabBtnDashboard">📊 Dashboard</button>
+    <button class="topTabBtn" id="tabBtnIssues">📋 Saksliste</button>
   </div>
 
-  <div class="activeFilters" id="activeFilters">
-    <span class="filterChipLabel">Aktive filter:</span>
-    <span id="chipTag" style="display:none" class="filterChip tag"></span>
-    <span id="chipStatus" style="display:none" class="filterChip status"></span>
-    <span id="chipUser" style="display:none" class="filterChip user"></span>
-  </div>
+  <section id="dashboardView" class="pageView active">
+    <div class="filterPanel">
+      <div class="filterGroup">
+        <label>Fra uke</label>
+        <select id="fromWeek"><option value="">(ingen)</option></select>
+      </div>
+      <div class="filterGroup">
+        <label>Til uke</label>
+        <select id="toWeek"><option value="">(ingen)</option></select>
+      </div>
+      <button class="btn btn-primary btn-sm" id="applyWeekBtn">Bruk</button>
 
-  <div class="sectionTitle">
-    Topic dashboard
-    <small>Fag · Trend · Cycle time</small>
-    <span class="sectionBadge" id="topicCountBadge">–</span>
-  </div>
+      <div class="filterDivider"></div>
 
-  <div class="cards">
-    <div class="card">
-      <h2 id="firstCardTitle">Fag (Tag) — antall saker + statusoversikt</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="tagPieChart"></canvas></div>
-      <div id="tagTableWrap" class="tableWrap"></div>
-      <div class="cardNote" id="firstCardNote">Klikk kakestykke → åpne topics. Klikk rad → filtrer dashboard.</div>
-    </div>
-    <div class="card">
-      <h2>Topics per Status over tid</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="statusLineChart"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Topics per Type over tid</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="typeLineChart"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Topics per Priority over tid</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="priorityLineChart"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Gjennomsnittlig tid opprettet → lukket (dager)</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="cycleTimeChart"></canvas></div>
-    </div>
-    <div class="card">
-      <h2>Opprettede Topics over tid</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="createdChart"></canvas></div>
-    </div>
-  </div>
+      <div class="filterGroup">
+        <label>Tildelt bruker</label>
+        <select id="assigneeSelect"><option value="">– Alle brukere –</option></select>
+      </div>
 
-  <div class="sectionTitle">
-    VDC dashboard
-    <small>Created/Closed · Backlog · WIP · Due date</small>
-  </div>
+      <div class="filterGroup">
+        <label>Status</label>
+        <select id="statusSelect"><option value="">– Alle statuser –</option></select>
+      </div>
 
-  <div class="cards">
-    <div class="card">
-      <h2>Created vs Closed (per uke)</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="createdClosedChart"></canvas></div>
-      <div class="cardNote">Closed-uke estimert via <code>modified_date</code> for lukkede statuser.</div>
+      <button class="btn btn-ghost btn-sm" id="clearFiltersBtn">✕ Nullstill filter</button>
+      <span class="filterHint">Klikk rad i Tag-tabellen for fagfilter</span>
     </div>
-    <div class="card">
-      <h2>Backlog (kumulativ)</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="backlogChart"></canvas></div>
-      <div class="cardNote">Kumulativt (Created − Closed).</div>
+
+    <div class="activeFilters" id="activeFilters">
+      <span class="filterChipLabel">Aktive filter:</span>
+      <span id="chipTag" style="display:none" class="filterChip tag"></span>
+      <span id="chipStatus" style="display:none" class="filterChip status"></span>
+      <span id="chipUser" style="display:none" class="filterChip user"></span>
     </div>
-    <div class="card">
-      <h2>WIP over tid</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="wipChart"></canvas></div>
-      <div class="cardNote">Åpne saker ved slutten av hver uke.</div>
+
+    <div class="sectionTitle">
+      Topic dashboard
+      <small>Fag · Trend · Cycle time</small>
+      <span class="sectionBadge" id="topicCountBadge">–</span>
     </div>
-    <div class="card">
-      <h2>Due date: On-time vs Late</h2>
-      <div class="divider"></div>
-      <div class="chartWrap"><canvas id="dueDateChart"></canvas></div>
-      <div class="cardNote" id="dueDateNote">Lukkede saker med due_date.</div>
+
+    <div class="cards">
+      <div class="card">
+        <h2 id="firstCardTitle">Fag (Tag) — antall saker + statusoversikt</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="tagPieChart"></canvas></div>
+        <div id="tagTableWrap" class="tableWrap"></div>
+        <div class="cardNote" id="firstCardNote">Klikk kakestykke → åpne topics. Klikk rad → filtrer dashboard.</div>
+      </div>
+      <div class="card">
+        <h2>Topics per Status over tid</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="statusLineChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Topics per Type over tid</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="typeLineChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Topics per Priority over tid</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="priorityLineChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Gjennomsnittlig tid opprettet → lukket (dager)</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="cycleTimeChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Opprettede Topics over tid</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="createdChart"></canvas></div>
+      </div>
     </div>
-  </div>
+
+    <div class="sectionTitle">
+      VDC dashboard
+      <small>Created/Closed · Backlog · WIP · Due date</small>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h2>Created vs Closed (per uke)</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="createdClosedChart"></canvas></div>
+        <div class="cardNote">Closed-uke estimert via <code>modified_date</code> for lukkede statuser.</div>
+      </div>
+      <div class="card">
+        <h2>Backlog (kumulativ)</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="backlogChart"></canvas></div>
+        <div class="cardNote">Kumulativt (Created − Closed).</div>
+      </div>
+      <div class="card">
+        <h2>WIP over tid</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="wipChart"></canvas></div>
+        <div class="cardNote">Åpne saker ved slutten av hver uke.</div>
+      </div>
+      <div class="card">
+        <h2>Due date: On-time vs Late</h2>
+        <div class="divider"></div>
+        <div class="chartWrap"><canvas id="dueDateChart"></canvas></div>
+        <div class="cardNote" id="dueDateNote">Lukkede saker med due_date.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="issuesView" class="pageView">
+    <div class="sectionTitle">
+      Saksliste
+      <small>Alle topics med filtrering og åpning i 3D</small>
+      <span class="sectionBadge" id="issueCountBadge">–</span>
+    </div>
+
+    <div class="filterPanel">
+      <div class="filterGroup">
+        <label>Fag / tag</label>
+        <select id="issueTagSelect"><option value="">– Alle fag –</option></select>
+      </div>
+      <div class="filterGroup">
+        <label>Bruker</label>
+        <select id="issueUserSelect"><option value="">– Alle brukere –</option></select>
+      </div>
+      <div class="filterGroup">
+        <label>Status</label>
+        <select id="issueStatusSelect"><option value="">– Alle statuser –</option></select>
+      </div>
+      <div class="filterGroup">
+        <label>Søk</label>
+        <input class="filterInput" id="issueSearch" type="search" placeholder="Søk tittel, GUID, type, prioritet..." />
+      </div>
+      <button class="btn btn-ghost btn-sm" id="clearIssueFiltersBtn">✕ Nullstill</button>
+      <span class="filterHint">Klikk rad eller knapp for å åpne saken i 3D</span>
+    </div>
+
+    <div class="issueLayout">
+      <div id="issuesTableWrap" class="tableWrap"></div>
+    </div>
+  </section>
 </main>
 
 <div id="modalOverlay">
@@ -379,6 +467,8 @@ let fWeekFrom = "", fWeekTo = "", fTag = null, fAssignee = "", fStatus = "";
 let weekFiltered = [], fullFiltered = [];
 const CHARTS = {};
 const modal = { tag: null, topics: [], sortKey: "created", sortDir: "desc", search: "" };
+
+const issueFilters = { tag: "", user: "", status: "", search: "" };
 
 const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const safe = v  => (v === null || v === undefined) ? "" : String(v).trim();
@@ -437,6 +527,10 @@ function getTags(t){
   if(s) c.push(s);
   return [...new Set(c.map(safe).filter(Boolean))];
 }
+function getPrimaryTag(t){
+  const tags = getTags(t);
+  return tags.length ? tags[0] : UNKNOWN;
+}
 function getStatus(t){ return safe(t.topic_status || t.status) || UNKNOWN; }
 function getType(t)  { return safe(t.topic_type   || t.type)   || UNKNOWN; }
 function getPriority(t){ return safe(t.priority) || UNKNOWN; }
@@ -462,6 +556,14 @@ function statusBadgeClass(s){
   return "s-open";
 }
 
+function setTopTab(tab){
+  const dashboardActive = tab === "dashboard";
+  document.getElementById("dashboardView").classList.toggle("active", dashboardActive);
+  document.getElementById("issuesView").classList.toggle("active", !dashboardActive);
+  document.getElementById("tabBtnDashboard").classList.toggle("active", dashboardActive);
+  document.getElementById("tabBtnIssues").classList.toggle("active", !dashboardActive);
+}
+
 function applyWeekFilter(topics){
   if(!fWeekFrom && !fWeekTo) return topics;
   return topics.filter(t => {
@@ -485,6 +587,39 @@ function applyAllFilters(topics){
       const a = getAssignee(t);
       if(a === UNKNOWN && fAssignee !== UNKNOWN) return false;
       if(fAssignee !== UNKNOWN && !a.includes(fAssignee)) return false;
+    }
+    return true;
+  });
+}
+
+function applyIssueFilters(topics){
+  const q = issueFilters.search.toLowerCase().trim();
+  return topics.filter(t => {
+    if(issueFilters.tag){
+      const tags = getTags(t);
+      if(issueFilters.tag === UNKNOWN){
+        if(tags.length) return false;
+      } else if(!tags.includes(issueFilters.tag)){
+        return false;
+      }
+    }
+    if(issueFilters.user){
+      if(getAssignee(t) !== issueFilters.user) return false;
+    }
+    if(issueFilters.status){
+      if(getStatus(t) !== issueFilters.status) return false;
+    }
+    if(q){
+      const hay = [
+        getTitle(t),
+        getId(t),
+        getPrimaryTag(t),
+        getStatus(t),
+        getAssignee(t),
+        getType(t),
+        getPriority(t)
+      ].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
     }
     return true;
   });
@@ -528,6 +663,42 @@ function populateStatusSelect(topics){
   const prev = el.value;
   el.innerHTML = `<option value="">– Alle statuser –</option>` + sorted.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
   if([...el.options].some(o => o.value === prev)) el.value = prev;
+}
+
+function populateIssueFilters(topics){
+  const tagSet = new Set();
+  const userSet = new Set();
+  const statusSet = new Set();
+
+  for(const t of topics){
+    const tags = getTags(t);
+    if(tags.length) tags.forEach(x => tagSet.add(x));
+    else tagSet.add(UNKNOWN);
+    userSet.add(getAssignee(t));
+    statusSet.add(getStatus(t));
+  }
+
+  const tags = [...tagSet].sort((a,b) => a.localeCompare(b, "nb"));
+  const users = [...userSet].sort((a,b) => {
+    if(a === UNKNOWN) return 1; if(b === UNKNOWN) return -1;
+    return a.localeCompare(b, "nb");
+  });
+  const statuses = [...statusSet].sort((a,b) => {
+    if(a === UNKNOWN) return 1; if(b === UNKNOWN) return -1;
+    return a.localeCompare(b, "nb");
+  });
+
+  const tagEl = document.getElementById("issueTagSelect");
+  const userEl = document.getElementById("issueUserSelect");
+  const statusEl = document.getElementById("issueStatusSelect");
+
+  tagEl.innerHTML = `<option value="">– Alle fag –</option>` + tags.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  userEl.innerHTML = `<option value="">– Alle brukere –</option>` + users.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  statusEl.innerHTML = `<option value="">– Alle statuser –</option>` + statuses.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+
+  tagEl.value = issueFilters.tag;
+  userEl.value = issueFilters.user;
+  statusEl.value = issueFilters.status;
 }
 
 function renderChips(){
@@ -942,6 +1113,258 @@ function doRender(){
     ],
     true
   );
+
+  populateIssueFilters(weekFiltered);
+  renderIssuesTable();
+}
+
+function renderIssuesTable(){
+  const wrap = document.getElementById("issuesTableWrap");
+  const list = applyIssueFilters(weekFiltered);
+  document.getElementById("issueCountBadge").textContent = `${list.length} saker`;
+
+  if(!list.length){
+    wrap.innerHTML = `<div class="emptyState"><div class="icon">📭</div><div>Ingen saker matcher filtrene</div></div>`;
+    return;
+  }
+
+  const rows = list
+    .sort((a,b) => (parseDateMaybe(b.creation_date)?.getTime() || 0) - (parseDateMaybe(a.creation_date)?.getTime() || 0))
+    .map(t => {
+      const st = getStatus(t);
+      const sc = statusBadgeClass(st);
+      const id = getId(t);
+      const tag = getPrimaryTag(t);
+      const created = fmtDate(parseDateMaybe(t.creation_date));
+      const title = getTitle(t);
+      const type = getType(t);
+      const priority = getPriority(t);
+      const assignee = getAssignee(t);
+      return `<tr class="clickRow issueRow" data-topic-id="${esc(id)}">
+        <td>${esc(created)}</td>
+        <td><span class="pill">${esc(tag)}</span></td>
+        <td><span class="pill ${sc}">${esc(st)}</span></td>
+        <td>${esc(assignee)}</td>
+        <td>${esc(type)}</td>
+        <td>${esc(priority)}</td>
+        <td title="${esc(title)}" style="white-space:normal;max-width:340px;">${esc(title)}</td>
+        <td><code style="font-size:10px;">${esc(id ? id.substring(0,12) : "")}${id ? "…" : ""}</code></td>
+        <td>
+          <div class="issueActions">
+            <button class="miniBtn openTopicBtn" data-topic-id="${esc(id)}">Åpne i 3D</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join("");
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Opprettet</th>
+      <th>Fag</th>
+      <th>Status</th>
+      <th>Bruker</th>
+      <th>Type</th>
+      <th>Prioritet</th>
+      <th>Tittel</th>
+      <th>GUID/ID</th>
+      <th>Handling</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  wrap.querySelectorAll(".openTopicBtn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const topicId = btn.getAttribute("data-topic-id");
+      const topic = weekFiltered.find(x => getId(x) === topicId);
+      if(topic) await openTopicIn3D(topic);
+    });
+  });
+
+  wrap.querySelectorAll(".issueRow").forEach(row => {
+    row.addEventListener("click", async () => {
+      const topicId = row.getAttribute("data-topic-id");
+      const topic = weekFiltered.find(x => getId(x) === topicId);
+      if(topic) await openTopicIn3D(topic);
+    });
+  });
+}
+
+async function fetchTopicViewpoints(topicId){
+  if(!accessToken || !currentProjectId || !topicId) return [];
+  const url = `${TOPICS_API_BASE}/bcf/3.0/projects/${encodeURIComponent(currentProjectId)}/topics/${encodeURIComponent(topicId)}/viewpoints`;
+  const resp = await fetch(url, {
+    headers: { "Authorization": `Bearer ${accessToken}`, "Accept": "application/json" }
+  });
+  if(!resp.ok) return [];
+  const json = await resp.json().catch(() => []);
+  return Array.isArray(json) ? json : [];
+}
+
+async function fetchSingleViewpoint(topicId, viewpointId){
+  if(!accessToken || !currentProjectId || !topicId || !viewpointId) return null;
+  const url = `${TOPICS_API_BASE}/bcf/3.0/projects/${encodeURIComponent(currentProjectId)}/topics/${encodeURIComponent(topicId)}/viewpoints/${encodeURIComponent(viewpointId)}`;
+  const resp = await fetch(url, {
+    headers: { "Authorization": `Bearer ${accessToken}`, "Accept": "application/json" }
+  });
+  if(!resp.ok) return null;
+  return await resp.json().catch(() => null);
+}
+
+function extractViewpointId(vp){
+  return safe(vp.guid || vp.viewpoint_guid || vp.id);
+}
+
+function extractLinkedObjectsFromViewpoint(viewpoint){
+  const result = [];
+
+  const componentRoots = [
+    viewpoint?.components,
+    viewpoint?.viewpoint?.components,
+    viewpoint?.snapshot?.components
+  ].filter(Boolean);
+
+  for(const root of componentRoots){
+    const selection = Array.isArray(root.selection) ? root.selection : [];
+    const visibilityExceptions = Array.isArray(root.visibility?.exceptions) ? root.visibility.exceptions : [];
+    const coloring = Array.isArray(root.coloring) ? root.coloring : [];
+
+    for(const item of selection){
+      result.push({
+        modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id),
+        objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId)
+      });
+    }
+    for(const item of visibilityExceptions){
+      result.push({
+        modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id),
+        objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId)
+      });
+    }
+    for(const colorGroup of coloring){
+      const comps = Array.isArray(colorGroup.components) ? colorGroup.components : [];
+      for(const item of comps){
+        result.push({
+          modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id),
+          objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId)
+        });
+      }
+    }
+  }
+
+  const uniq = [];
+  const seen = new Set();
+  for(const x of result){
+    if(!x.objectId) continue;
+    const key = `${x.modelId}|${x.objectId}`;
+    if(seen.has(key)) continue;
+    seen.add(key);
+    uniq.push(x);
+  }
+  return uniq;
+}
+
+async function tryOpenViewerTabs(){
+  if(!API?.ui) return;
+
+  try {
+    const tabs = await API.ui.getUITabIds().catch(() => []);
+    const tryIds = [
+      "DetailsPanel.ToDos",
+      "DetailsPanel.Views",
+      "DetailsPanel.Clashes"
+    ];
+    for(const id of tryIds){
+      if(Array.isArray(tabs) && tabs.includes(id)){
+        await API.ui.openUITab(id).catch(() => {});
+        return;
+      }
+    }
+  } catch(_) {}
+}
+
+async function openTopicIn3D(topic){
+  const topicId = getId(topic);
+  const title = getTitle(topic);
+  if(!topicId){
+    setStatus("Saken mangler GUID/ID.");
+    return;
+  }
+
+  setStatus(`Åpner sak i 3D: ${title}`, true);
+
+  try{
+    await tryOpenViewerTabs();
+
+    // Prøv å sørge for at 3D-panelet er synlig
+    if(API?.ui?.setUI){
+      await API.ui.setUI({ name: "SidePanel", state: "expanded" }).catch(() => {});
+      await API.ui.setUI({ name: "DetailsPanel", state: "visible" }).catch(() => {});
+    }
+
+    // Hent viewpoint(er) for topic
+    const viewpoints = await fetchTopicViewpoints(topicId);
+    let openedWithObjects = false;
+
+    if(viewpoints.length){
+      const firstVp = viewpoints[0];
+      const vpId = extractViewpointId(firstVp);
+      let vpDetail = firstVp;
+
+      if(vpId){
+        const loaded = await fetchSingleViewpoint(topicId, vpId);
+        if(loaded) vpDetail = loaded;
+      }
+
+      const linked = extractLinkedObjectsFromViewpoint(vpDetail);
+
+      if(linked.length && API?.viewer){
+        const byModel = {};
+        for(const item of linked){
+          const modelId = item.modelId || "";
+          if(!byModel[modelId]) byModel[modelId] = [];
+          byModel[modelId].push(item.objectId);
+        }
+
+        const selection = [];
+        for(const [modelIdRaw, objectIds] of Object.entries(byModel)){
+          let modelId = modelIdRaw;
+
+          if(!modelId){
+            const models = await API.viewer.getModels("loaded").catch(() => []);
+            if(models?.length === 1) modelId = models[0].id;
+          }
+
+          if(!modelId) continue;
+
+          const runtimeIds = await API.viewer.convertToObjectRuntimeIds(modelId, objectIds).catch(() => []);
+          const validRuntimeIds = (runtimeIds || []).filter(x => x !== undefined && x !== null);
+
+          if(validRuntimeIds.length){
+            selection.push({ modelId, objectRuntimeIds: validRuntimeIds });
+          }
+        }
+
+        if(selection.length){
+          await API.viewer.setSelection(selection, "set").catch(() => {});
+          await API.viewer.isolateEntities(selection).catch(() => {});
+          openedWithObjects = true;
+        }
+      }
+    }
+
+    if(openedWithObjects){
+      setStatus(`✓ Åpnet i 3D: ${title}`);
+    } else {
+      setStatus(`✓ Åpnet 3D-visning for sak: ${title} (ingen koblede objekter/viewpoint funnet)`);
+    }
+
+    setTopTab("issues");
+  } catch(err){
+    console.error(err);
+    setError("Klarte ikke å åpne saken i 3D: " + (err.message || err));
+    setStatus("Feil ved åpning av sak i 3D.");
+  }
 }
 
 function openModal(tag){
@@ -1162,6 +1585,9 @@ async function init(){
 document.addEventListener("DOMContentLoaded", () => {
   init();
 
+  document.getElementById("tabBtnDashboard").addEventListener("click", () => setTopTab("dashboard"));
+  document.getElementById("tabBtnIssues").addEventListener("click", () => setTopTab("issues"));
+
   document.getElementById("applyWeekBtn").addEventListener("click", () => {
     if(!allWithDates.length) return;
     fWeekFrom = document.getElementById("fromWeek").value;
@@ -1202,6 +1628,34 @@ document.addEventListener("DOMContentLoaded", () => {
     if(type === "user"){ fAssignee = ""; document.getElementById("assigneeSelect").value = ""; }
     renderChips();
     doRender();
+  });
+
+  document.getElementById("issueTagSelect").addEventListener("change", e => {
+    issueFilters.tag = e.target.value;
+    renderIssuesTable();
+  });
+  document.getElementById("issueUserSelect").addEventListener("change", e => {
+    issueFilters.user = e.target.value;
+    renderIssuesTable();
+  });
+  document.getElementById("issueStatusSelect").addEventListener("change", e => {
+    issueFilters.status = e.target.value;
+    renderIssuesTable();
+  });
+  document.getElementById("issueSearch").addEventListener("input", e => {
+    issueFilters.search = e.target.value || "";
+    renderIssuesTable();
+  });
+  document.getElementById("clearIssueFiltersBtn").addEventListener("click", () => {
+    issueFilters.tag = "";
+    issueFilters.user = "";
+    issueFilters.status = "";
+    issueFilters.search = "";
+    document.getElementById("issueTagSelect").value = "";
+    document.getElementById("issueUserSelect").value = "";
+    document.getElementById("issueStatusSelect").value = "";
+    document.getElementById("issueSearch").value = "";
+    renderIssuesTable();
   });
 
   document.getElementById("refreshBtn").addEventListener("click", refreshData);
