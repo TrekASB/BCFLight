@@ -108,11 +108,13 @@
     }
     .filterGroup { display: flex; flex-direction: column; gap: 4px; }
     .filterGroup label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
-    select, .filterInput {
+    select, .filterInput, textarea {
       padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border);
-      background: #fff; font-size: 13px; min-width: 180px; color: var(--text);
+      background: #fff; font-size: 13px; color: var(--text);
     }
-    select:focus, .filterInput:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
+    select, .filterInput { min-width: 180px; }
+    textarea { width: 100%; min-height: 110px; resize: vertical; }
+    select:focus, .filterInput:focus, textarea:focus { outline: 2px solid var(--primary); border-color: var(--primary); }
     .filterDivider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
     .filterHint { font-size: 11px; color: var(--muted); margin-left: auto; align-self: center; }
 
@@ -164,7 +166,7 @@
 
     .tableWrap { overflow: auto; border: 1px solid var(--border); border-radius: 10px; background: #fff; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; min-width: 480px; }
-    th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; text-align: left; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; text-align: left; vertical-align: top; }
     th {
       position: sticky; top: 0; background: #f8fafc; z-index: 1;
       font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; color: var(--muted);
@@ -242,10 +244,100 @@
       gap: 12px;
     }
 
+    .activeIssueGrid {
+      display: grid;
+      grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 0.9fr);
+      gap: 12px;
+    }
+    .infoCard {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .infoCard h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .kvGrid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 8px 10px;
+      font-size: 12px;
+    }
+    .kvKey {
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .issueTitleBig {
+      font-size: 18px;
+      font-weight: 900;
+      margin: 0 0 8px;
+      line-height: 1.3;
+    }
+    .issueMetaRow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .commentList {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .commentItem {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+    .commentHead {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      flex-wrap: wrap;
+    }
+    .commentBody {
+      font-size: 12px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+    .issueNavBar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .viewerHint {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .softBox {
+      border: 1px dashed var(--border);
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1100px) {
+      .activeIssueGrid { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 680px) {
       .filterDivider { display: none; }
       select, .filterInput { min-width: 140px; }
       .sectionBadge { display: none; }
+      .kvGrid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -273,6 +365,7 @@
   <div class="topTabs">
     <button class="topTabBtn active" id="tabBtnDashboard">📊 Dashboard</button>
     <button class="topTabBtn" id="tabBtnIssues">📋 Saksliste</button>
+    <button class="topTabBtn" id="tabBtnActiveIssue" disabled>🧩 Aktiv sak</button>
   </div>
 
   <section id="dashboardView" class="pageView active">
@@ -387,7 +480,7 @@
   <section id="issuesView" class="pageView">
     <div class="sectionTitle">
       Saksliste
-      <small>Alle topics med filtrering og åpning i 3D</small>
+      <small>Alle topics med filtrering og åpning av aktiv sak</small>
       <span class="sectionBadge" id="issueCountBadge">–</span>
     </div>
 
@@ -409,11 +502,34 @@
         <input class="filterInput" id="issueSearch" type="search" placeholder="Søk tittel, GUID, type, prioritet..." />
       </div>
       <button class="btn btn-ghost btn-sm" id="clearIssueFiltersBtn">✕ Nullstill</button>
-      <span class="filterHint">Klikk rad eller knapp for å åpne saken i 3D</span>
+      <span class="filterHint">Klikk rad eller knapp for å åpne Aktiv sak</span>
     </div>
 
     <div class="issueLayout">
       <div id="issuesTableWrap" class="tableWrap"></div>
+    </div>
+  </section>
+
+  <section id="activeIssueView" class="pageView">
+    <div class="sectionTitle">
+      Aktiv sak
+      <small>Valgt BCF-topic med detaljer og 3D-synk</small>
+      <span class="sectionBadge" id="activeIssueBadge">Ingen valgt</span>
+    </div>
+
+    <div class="filterPanel">
+      <div class="issueNavBar" style="width:100%;">
+        <button class="btn btn-ghost btn-sm" id="backToIssuesBtn">← Tilbake til saksliste</button>
+        <button class="btn btn-primary btn-sm" id="resync3DBtn" disabled>🎯 Synk til 3D på nytt</button>
+        <button class="btn btn-ghost btn-sm" id="openNextIssueBtn" disabled>→ Neste sak</button>
+        <span class="viewerHint" id="activeIssueHint">Velg en sak fra saksliste.</span>
+      </div>
+    </div>
+
+    <div id="activeIssueContainer" class="activeIssueGrid">
+      <div class="infoCard">
+        <div class="softBox">Ingen aktiv sak valgt ennå.</div>
+      </div>
     </div>
   </section>
 </main>
@@ -470,6 +586,14 @@ const modal = { tag: null, topics: [], sortKey: "created", sortDir: "desc", sear
 
 const issueFilters = { tag: "", user: "", status: "", search: "" };
 
+const activeIssue = {
+  topic: null,
+  comments: [],
+  viewpoints: [],
+  viewpointDetail: null,
+  linkedObjects: []
+};
+
 const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const safe = v  => (v === null || v === undefined) ? "" : String(v).trim();
 const pad2 = n  => String(n).padStart(2,"0");
@@ -497,6 +621,10 @@ function parseDateMaybe(v){
   return isNaN(d.getTime()) ? null : d;
 }
 function fmtDate(d){ if(!d) return ""; return `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()}`; }
+function fmtDateTime(d){
+  if(!d) return "";
+  return `${pad2(d.getDate())}.${pad2(d.getMonth()+1)}.${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
 function isoWeek(date){
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const day = d.getUTCDay() || 7;
@@ -544,9 +672,18 @@ function getAssignee(t){
   }
   return UNKNOWN;
 }
+function getDescription(t){
+  return safe(t.description || t.topic_description || t.topicDescription);
+}
+function getCreatedBy(t){
+  return safe(t.creation_author || t.created_by || t.author || t.creator || t.modified_author) || UNKNOWN;
+}
 function getClosedDate(t){
   if(!CLOSED_STATUSES.has(getStatus(t))) return null;
   return parseDateMaybe(t.modified_date || t.modifiedDate);
+}
+function getDueDate(t){
+  return parseDateMaybe(t.due_date || t.dueDate || t.duedate);
 }
 function statusBadgeClass(s){
   const l = s.toLowerCase();
@@ -557,11 +694,17 @@ function statusBadgeClass(s){
 }
 
 function setTopTab(tab){
-  const dashboardActive = tab === "dashboard";
-  document.getElementById("dashboardView").classList.toggle("active", dashboardActive);
-  document.getElementById("issuesView").classList.toggle("active", !dashboardActive);
-  document.getElementById("tabBtnDashboard").classList.toggle("active", dashboardActive);
-  document.getElementById("tabBtnIssues").classList.toggle("active", !dashboardActive);
+  const map = {
+    dashboard: ["dashboardView","tabBtnDashboard"],
+    issues: ["issuesView","tabBtnIssues"],
+    active: ["activeIssueView","tabBtnActiveIssue"]
+  };
+  document.getElementById("dashboardView").classList.toggle("active", tab === "dashboard");
+  document.getElementById("issuesView").classList.toggle("active", tab === "issues");
+  document.getElementById("activeIssueView").classList.toggle("active", tab === "active");
+  document.getElementById("tabBtnDashboard").classList.toggle("active", tab === "dashboard");
+  document.getElementById("tabBtnIssues").classList.toggle("active", tab === "issues");
+  document.getElementById("tabBtnActiveIssue").classList.toggle("active", tab === "active");
 }
 
 function applyWeekFilter(topics){
@@ -617,12 +760,18 @@ function applyIssueFilters(topics){
         getStatus(t),
         getAssignee(t),
         getType(t),
-        getPriority(t)
+        getPriority(t),
+        getDescription(t)
       ].join(" ").toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
+}
+
+function getFilteredIssueList(){
+  return applyIssueFilters(weekFiltered)
+    .sort((a,b) => (parseDateMaybe(b.creation_date)?.getTime() || 0) - (parseDateMaybe(a.creation_date)?.getTime() || 0));
 }
 
 function populateWeekSelects(topics){
@@ -923,7 +1072,7 @@ function aggDueDate(topics, wks){
   const onT = {}, late = {}; let found = false;
   for(const w of wks){ onT[w] = 0; late[w] = 0; }
   for(const t of topics){
-    const due = parseDateMaybe(t.due_date || t.dueDate || t.duedate); if(!due) continue;
+    const due = getDueDate(t); if(!due) continue;
     found = true;
     const cl = getClosedDate(t); if(!cl) continue;
     const w = isoWeek(cl); if(!(w in onT)) continue;
@@ -1116,11 +1265,12 @@ function doRender(){
 
   populateIssueFilters(weekFiltered);
   renderIssuesTable();
+  refreshActiveIssueNextButton();
 }
 
 function renderIssuesTable(){
   const wrap = document.getElementById("issuesTableWrap");
-  const list = applyIssueFilters(weekFiltered);
+  const list = getFilteredIssueList();
   document.getElementById("issueCountBadge").textContent = `${list.length} saker`;
 
   if(!list.length){
@@ -1128,34 +1278,36 @@ function renderIssuesTable(){
     return;
   }
 
-  const rows = list
-    .sort((a,b) => (parseDateMaybe(b.creation_date)?.getTime() || 0) - (parseDateMaybe(a.creation_date)?.getTime() || 0))
-    .map(t => {
-      const st = getStatus(t);
-      const sc = statusBadgeClass(st);
-      const id = getId(t);
-      const tag = getPrimaryTag(t);
-      const created = fmtDate(parseDateMaybe(t.creation_date));
-      const title = getTitle(t);
-      const type = getType(t);
-      const priority = getPriority(t);
-      const assignee = getAssignee(t);
-      return `<tr class="clickRow issueRow" data-topic-id="${esc(id)}">
-        <td>${esc(created)}</td>
-        <td><span class="pill">${esc(tag)}</span></td>
-        <td><span class="pill ${sc}">${esc(st)}</span></td>
-        <td>${esc(assignee)}</td>
-        <td>${esc(type)}</td>
-        <td>${esc(priority)}</td>
-        <td title="${esc(title)}" style="white-space:normal;max-width:340px;">${esc(title)}</td>
-        <td><code style="font-size:10px;">${esc(id ? id.substring(0,12) : "")}${id ? "…" : ""}</code></td>
-        <td>
-          <div class="issueActions">
-            <button class="miniBtn openTopicBtn" data-topic-id="${esc(id)}">Åpne i 3D</button>
-          </div>
-        </td>
-      </tr>`;
-    }).join("");
+  const activeId = activeIssue.topic ? getId(activeIssue.topic) : "";
+
+  const rows = list.map(t => {
+    const st = getStatus(t);
+    const sc = statusBadgeClass(st);
+    const id = getId(t);
+    const tag = getPrimaryTag(t);
+    const created = fmtDate(parseDateMaybe(t.creation_date));
+    const title = getTitle(t);
+    const type = getType(t);
+    const priority = getPriority(t);
+    const assignee = getAssignee(t);
+    const isSelected = id && id === activeId;
+
+    return `<tr class="clickRow issueRow${isSelected ? " selected" : ""}" data-topic-id="${esc(id)}">
+      <td>${esc(created)}</td>
+      <td><span class="pill">${esc(tag)}</span></td>
+      <td><span class="pill ${sc}">${esc(st)}</span></td>
+      <td>${esc(assignee)}</td>
+      <td>${esc(type)}</td>
+      <td>${esc(priority)}</td>
+      <td title="${esc(title)}" style="white-space:normal;max-width:340px;">${esc(title)}</td>
+      <td><code style="font-size:10px;">${esc(id ? id.substring(0,12) : "")}${id ? "…" : ""}</code></td>
+      <td>
+        <div class="issueActions">
+          <button class="miniBtn openTopicBtn" data-topic-id="${esc(id)}">Åpne aktiv sak</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
 
   wrap.innerHTML = `<table>
     <thead><tr>
@@ -1177,7 +1329,7 @@ function renderIssuesTable(){
       e.stopPropagation();
       const topicId = btn.getAttribute("data-topic-id");
       const topic = weekFiltered.find(x => getId(x) === topicId);
-      if(topic) await openTopicIn3D(topic);
+      if(topic) await openActiveIssue(topic);
     });
   });
 
@@ -1185,7 +1337,7 @@ function renderIssuesTable(){
     row.addEventListener("click", async () => {
       const topicId = row.getAttribute("data-topic-id");
       const topic = weekFiltered.find(x => getId(x) === topicId);
-      if(topic) await openTopicIn3D(topic);
+      if(topic) await openActiveIssue(topic);
     });
   });
 }
@@ -1211,6 +1363,17 @@ async function fetchSingleViewpoint(topicId, viewpointId){
   return await resp.json().catch(() => null);
 }
 
+async function fetchTopicComments(topicId){
+  if(!accessToken || !currentProjectId || !topicId) return [];
+  const url = `${TOPICS_API_BASE}/bcf/3.0/projects/${encodeURIComponent(currentProjectId)}/topics/${encodeURIComponent(topicId)}/comments`;
+  const resp = await fetch(url, {
+    headers: { "Authorization": `Bearer ${accessToken}`, "Accept": "application/json" }
+  });
+  if(!resp.ok) return [];
+  const json = await resp.json().catch(() => []);
+  return Array.isArray(json) ? json : [];
+}
+
 function extractViewpointId(vp){
   return safe(vp.guid || vp.viewpoint_guid || vp.id);
 }
@@ -1231,22 +1394,22 @@ function extractLinkedObjectsFromViewpoint(viewpoint){
 
     for(const item of selection){
       result.push({
-        modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id),
-        objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId)
+        modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id || item.model_guid),
+        objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId || item.component_guid)
       });
     }
     for(const item of visibilityExceptions){
       result.push({
-        modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id),
-        objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId)
+        modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id || item.model_guid),
+        objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId || item.component_guid)
       });
     }
     for(const colorGroup of coloring){
       const comps = Array.isArray(colorGroup.components) ? colorGroup.components : [];
       for(const item of comps){
         result.push({
-          modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id),
-          objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId)
+          modelId: safe(item.ifc_project || item.model_id || item.modelId || item.authoring_tool_id || item.model_guid),
+          objectId: safe(item.ifc_guid || item.guid || item.object_id || item.objectId || item.component_guid)
         });
       }
     }
@@ -1277,93 +1440,246 @@ async function tryOpenViewerTabs(){
     for(const id of tryIds){
       if(Array.isArray(tabs) && tabs.includes(id)){
         await API.ui.openUITab(id).catch(() => {});
-        return;
       }
     }
   } catch(_) {}
 }
 
-async function openTopicIn3D(topic){
+async function syncIssueTo3D(topic){
   const topicId = getId(topic);
-  const title = getTitle(topic);
-  if(!topicId){
-    setStatus("Saken mangler GUID/ID.");
+  if(!topicId) return { openedWithObjects: false, linkedCount: 0, viewpoints: [], viewpointDetail: null, linkedObjects: [] };
+
+  await tryOpenViewerTabs();
+
+  if(API?.ui?.setUI){
+    await API.ui.setUI({ name: "SidePanel", state: "expanded" }).catch(() => {});
+    await API.ui.setUI({ name: "DetailsPanel", state: "visible" }).catch(() => {});
+  }
+
+  const viewpoints = await fetchTopicViewpoints(topicId);
+  let viewpointDetail = null;
+  let linked = [];
+  let openedWithObjects = false;
+
+  if(viewpoints.length){
+    const firstVp = viewpoints[0];
+    const vpId = extractViewpointId(firstVp);
+    viewpointDetail = firstVp;
+
+    if(vpId){
+      const loaded = await fetchSingleViewpoint(topicId, vpId);
+      if(loaded) viewpointDetail = loaded;
+    }
+
+    linked = extractLinkedObjectsFromViewpoint(viewpointDetail);
+
+    if(linked.length && API?.viewer){
+      const byModel = {};
+      for(const item of linked){
+        const modelId = item.modelId || "";
+        if(!byModel[modelId]) byModel[modelId] = [];
+        byModel[modelId].push(item.objectId);
+      }
+
+      const selection = [];
+      for(const [modelIdRaw, objectIds] of Object.entries(byModel)){
+        let modelId = modelIdRaw;
+
+        if(!modelId){
+          const models = await API.viewer.getModels("loaded").catch(() => []);
+          if(models?.length === 1) modelId = models[0].id;
+        }
+
+        if(!modelId) continue;
+
+        const runtimeIds = await API.viewer.convertToObjectRuntimeIds(modelId, objectIds).catch(() => []);
+        const validRuntimeIds = (runtimeIds || []).filter(x => x !== undefined && x !== null);
+
+        if(validRuntimeIds.length){
+          selection.push({ modelId, objectRuntimeIds: validRuntimeIds });
+        }
+      }
+
+      if(selection.length){
+        await API.viewer.setSelection(selection, "set").catch(() => {});
+        await API.viewer.isolateEntities(selection).catch(() => {});
+        openedWithObjects = true;
+      }
+    }
+  }
+
+  return {
+    openedWithObjects,
+    linkedCount: linked.length,
+    viewpoints,
+    viewpointDetail,
+    linkedObjects: linked
+  };
+}
+
+function renderActiveIssue(){
+  const container = document.getElementById("activeIssueContainer");
+  const badge = document.getElementById("activeIssueBadge");
+  const hint = document.getElementById("activeIssueHint");
+  const resyncBtn = document.getElementById("resync3DBtn");
+  const nextBtn = document.getElementById("openNextIssueBtn");
+  const tabBtn = document.getElementById("tabBtnActiveIssue");
+
+  if(!activeIssue.topic){
+    container.innerHTML = `<div class="infoCard"><div class="softBox">Ingen aktiv sak valgt ennå.</div></div>`;
+    badge.textContent = "Ingen valgt";
+    hint.textContent = "Velg en sak fra saksliste.";
+    resyncBtn.disabled = true;
+    nextBtn.disabled = true;
+    tabBtn.disabled = true;
     return;
   }
 
-  setStatus(`Åpner sak i 3D: ${title}`, true);
+  const t = activeIssue.topic;
+  const st = getStatus(t);
+  const tag = getPrimaryTag(t);
+  const type = getType(t);
+  const priority = getPriority(t);
+  const assignee = getAssignee(t);
+  const created = parseDateMaybe(t.creation_date);
+  const modified = parseDateMaybe(t.modified_date || t.modifiedDate);
+  const due = getDueDate(t);
+  const topicId = getId(t);
+  const createdBy = getCreatedBy(t);
+  const desc = getDescription(t);
+  const comments = activeIssue.comments || [];
+  const vpCount = activeIssue.viewpoints?.length || 0;
+  const linkedCount = activeIssue.linkedObjects?.length || 0;
+
+  badge.textContent = tag;
+  hint.textContent = linkedCount
+    ? `3D synk: ${linkedCount} koblede objekt(er) funnet`
+    : (vpCount ? `Viewpoint funnet, men ingen koblede objekter ble markert` : `Ingen viewpoint/koblede objekter funnet for denne saken`);
+  resyncBtn.disabled = false;
+  nextBtn.disabled = false;
+  tabBtn.disabled = false;
+
+  const commentHtml = comments.length
+    ? `<div class="commentList">
+        ${comments.map(c => {
+          const author = safe(c.author || c.creation_author || c.modified_author || c.created_by) || UNKNOWN;
+          const d = parseDateMaybe(c.date || c.creation_date || c.modified_date);
+          const txt = safe(c.comment || c.comment_text || c.text || c.description) || "(tom kommentar)";
+          return `<div class="commentItem">
+            <div class="commentHead">
+              <span>${esc(author)}</span>
+              <span>${esc(fmtDateTime(d))}</span>
+            </div>
+            <div class="commentBody">${esc(txt)}</div>
+          </div>`;
+        }).join("")}
+      </div>`
+    : `<div class="softBox">Ingen kommentarer funnet for denne saken.</div>`;
+
+  const descHtml = desc
+    ? `<div style="white-space:pre-wrap;font-size:12px;line-height:1.5;">${esc(desc)}</div>`
+    : `<div class="softBox">Ingen beskrivelse registrert.</div>`;
+
+  container.innerHTML = `
+    <div class="infoCard">
+      <div class="issueTitleBig">${esc(getTitle(t))}</div>
+      <div class="issueMetaRow">
+        <span class="pill">${esc(tag)}</span>
+        <span class="pill ${statusBadgeClass(st)}">${esc(st)}</span>
+        <span class="pill">${esc(type)}</span>
+        <span class="pill">${esc(priority)}</span>
+      </div>
+
+      <h3>Emneinformasjon</h3>
+      <div class="kvGrid">
+        <div class="kvKey">GUID / ID</div><div><code>${esc(topicId)}</code></div>
+        <div class="kvKey">Tildelt</div><div>${esc(assignee)}</div>
+        <div class="kvKey">Opprettet av</div><div>${esc(createdBy)}</div>
+        <div class="kvKey">Opprettet</div><div>${esc(fmtDateTime(created))}</div>
+        <div class="kvKey">Sist endret</div><div>${esc(fmtDateTime(modified)) || "–"}</div>
+        <div class="kvKey">Due date</div><div>${esc(fmtDate(due)) || "–"}</div>
+        <div class="kvKey">Viewpoints</div><div>${vpCount}</div>
+        <div class="kvKey">Koblede objekter</div><div>${linkedCount}</div>
+      </div>
+
+      <div class="divider"></div>
+      <h3>Beskrivelse</h3>
+      ${descHtml}
+    </div>
+
+    <div class="infoCard">
+      <h3>Kommentarer</h3>
+      ${commentHtml}
+    </div>
+  `;
+}
+
+function refreshActiveIssueNextButton(){
+  const nextBtn = document.getElementById("openNextIssueBtn");
+  if(!activeIssue.topic){
+    nextBtn.disabled = true;
+    return;
+  }
+  const list = getFilteredIssueList();
+  const idx = list.findIndex(t => getId(t) === getId(activeIssue.topic));
+  nextBtn.disabled = idx < 0 || idx >= list.length - 1;
+}
+
+async function openActiveIssue(topic){
+  if(!topic) return;
+
+  const title = getTitle(topic);
+  const topicId = getId(topic);
 
   try{
-    await tryOpenViewerTabs();
+    setStatus(`Laster aktiv sak: ${title}`, true);
+    setError("");
 
-    // Prøv å sørge for at 3D-panelet er synlig
-    if(API?.ui?.setUI){
-      await API.ui.setUI({ name: "SidePanel", state: "expanded" }).catch(() => {});
-      await API.ui.setUI({ name: "DetailsPanel", state: "visible" }).catch(() => {});
-    }
+    activeIssue.topic = topic;
+    activeIssue.comments = [];
+    activeIssue.viewpoints = [];
+    activeIssue.viewpointDetail = null;
+    activeIssue.linkedObjects = [];
 
-    // Hent viewpoint(er) for topic
-    const viewpoints = await fetchTopicViewpoints(topicId);
-    let openedWithObjects = false;
+    document.getElementById("tabBtnActiveIssue").disabled = false;
+    setTopTab("active");
+    renderActiveIssue();
+    renderIssuesTable();
 
-    if(viewpoints.length){
-      const firstVp = viewpoints[0];
-      const vpId = extractViewpointId(firstVp);
-      let vpDetail = firstVp;
+    const [comments, syncResult] = await Promise.all([
+      fetchTopicComments(topicId).catch(() => []),
+      syncIssueTo3D(topic).catch(() => ({ openedWithObjects: false, linkedCount: 0, viewpoints: [], viewpointDetail: null, linkedObjects: [] }))
+    ]);
 
-      if(vpId){
-        const loaded = await fetchSingleViewpoint(topicId, vpId);
-        if(loaded) vpDetail = loaded;
-      }
+    activeIssue.comments = comments;
+    activeIssue.viewpoints = syncResult.viewpoints || [];
+    activeIssue.viewpointDetail = syncResult.viewpointDetail || null;
+    activeIssue.linkedObjects = syncResult.linkedObjects || [];
 
-      const linked = extractLinkedObjectsFromViewpoint(vpDetail);
+    renderActiveIssue();
+    renderIssuesTable();
+    refreshActiveIssueNextButton();
 
-      if(linked.length && API?.viewer){
-        const byModel = {};
-        for(const item of linked){
-          const modelId = item.modelId || "";
-          if(!byModel[modelId]) byModel[modelId] = [];
-          byModel[modelId].push(item.objectId);
-        }
-
-        const selection = [];
-        for(const [modelIdRaw, objectIds] of Object.entries(byModel)){
-          let modelId = modelIdRaw;
-
-          if(!modelId){
-            const models = await API.viewer.getModels("loaded").catch(() => []);
-            if(models?.length === 1) modelId = models[0].id;
-          }
-
-          if(!modelId) continue;
-
-          const runtimeIds = await API.viewer.convertToObjectRuntimeIds(modelId, objectIds).catch(() => []);
-          const validRuntimeIds = (runtimeIds || []).filter(x => x !== undefined && x !== null);
-
-          if(validRuntimeIds.length){
-            selection.push({ modelId, objectRuntimeIds: validRuntimeIds });
-          }
-        }
-
-        if(selection.length){
-          await API.viewer.setSelection(selection, "set").catch(() => {});
-          await API.viewer.isolateEntities(selection).catch(() => {});
-          openedWithObjects = true;
-        }
-      }
-    }
-
-    if(openedWithObjects){
-      setStatus(`✓ Åpnet i 3D: ${title}`);
+    if(syncResult.openedWithObjects){
+      setStatus(`✓ Aktiv sak åpnet og synkronisert til 3D: ${title}`);
+    } else if((syncResult.viewpoints || []).length){
+      setStatus(`✓ Aktiv sak åpnet. Viewpoint funnet, men ingen objekter ble markert: ${title}`);
     } else {
-      setStatus(`✓ Åpnet 3D-visning for sak: ${title} (ingen koblede objekter/viewpoint funnet)`);
+      setStatus(`✓ Aktiv sak åpnet. Ingen viewpoint funnet: ${title}`);
     }
-
-    setTopTab("issues");
   } catch(err){
     console.error(err);
-    setError("Klarte ikke å åpne saken i 3D: " + (err.message || err));
-    setStatus("Feil ved åpning av sak i 3D.");
+    setError("Klarte ikke å åpne aktiv sak: " + (err.message || err));
+    setStatus("Feil ved åpning av aktiv sak.");
+  }
+}
+
+async function openNextIssue(){
+  if(!activeIssue.topic) return;
+  const list = getFilteredIssueList();
+  const idx = list.findIndex(t => getId(t) === getId(activeIssue.topic));
+  if(idx >= 0 && idx < list.length - 1){
+    await openActiveIssue(list[idx + 1]);
   }
 }
 
@@ -1426,7 +1742,7 @@ function renderModalTable(){
 
   const rows = list.map(t => {
     const st = getStatus(t), sc = statusBadgeClass(st);
-    const due = parseDateMaybe(t.due_date || t.dueDate || t.duedate);
+    const due = getDueDate(t);
     const dueStr = due ? fmtDate(due) : "–";
     const closedDate = getClosedDate(t);
     const isLate = due && closedDate && closedDate > due;
@@ -1485,7 +1801,7 @@ function exportModalCsv(){
     modal.tag,
     fmtDate(parseDateMaybe(t.creation_date)),
     getStatus(t), getType(t), getPriority(t), getAssignee(t),
-    fmtDate(parseDateMaybe(t.due_date || t.dueDate || t.duedate)),
+    fmtDate(getDueDate(t)),
     getTitle(t), getId(t)
   ].map(csvEsc).join(","));
   const csv = [header, ...rows].join("\r\n");
@@ -1587,6 +1903,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("tabBtnDashboard").addEventListener("click", () => setTopTab("dashboard"));
   document.getElementById("tabBtnIssues").addEventListener("click", () => setTopTab("issues"));
+  document.getElementById("tabBtnActiveIssue").addEventListener("click", () => {
+    if(activeIssue.topic) setTopTab("active");
+  });
 
   document.getElementById("applyWeekBtn").addEventListener("click", () => {
     if(!allWithDates.length) return;
@@ -1633,18 +1952,22 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("issueTagSelect").addEventListener("change", e => {
     issueFilters.tag = e.target.value;
     renderIssuesTable();
+    refreshActiveIssueNextButton();
   });
   document.getElementById("issueUserSelect").addEventListener("change", e => {
     issueFilters.user = e.target.value;
     renderIssuesTable();
+    refreshActiveIssueNextButton();
   });
   document.getElementById("issueStatusSelect").addEventListener("change", e => {
     issueFilters.status = e.target.value;
     renderIssuesTable();
+    refreshActiveIssueNextButton();
   });
   document.getElementById("issueSearch").addEventListener("input", e => {
     issueFilters.search = e.target.value || "";
     renderIssuesTable();
+    refreshActiveIssueNextButton();
   });
   document.getElementById("clearIssueFiltersBtn").addEventListener("click", () => {
     issueFilters.tag = "";
@@ -1656,7 +1979,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("issueStatusSelect").value = "";
     document.getElementById("issueSearch").value = "";
     renderIssuesTable();
+    refreshActiveIssueNextButton();
   });
+
+  document.getElementById("backToIssuesBtn").addEventListener("click", () => setTopTab("issues"));
+  document.getElementById("resync3DBtn").addEventListener("click", async () => {
+    if(activeIssue.topic) await openActiveIssue(activeIssue.topic);
+  });
+  document.getElementById("openNextIssueBtn").addEventListener("click", openNextIssue);
 
   document.getElementById("refreshBtn").addEventListener("click", refreshData);
 
