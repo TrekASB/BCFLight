@@ -189,6 +189,26 @@
     .chart-wrap { position: relative; height: 260px; }
     .chart-wrap canvas { width: 100% !important; height: 100% !important; }
 
+    .topic-main-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .topic-hero-card {
+      min-height: 540px;
+    }
+    .topic-hero-chart {
+      flex: 1;
+      min-height: 430px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .topic-hero-chart canvas {
+      max-height: 430px !important;
+    }
+
     .section-label {
       font-size: 11px; font-weight: 800; color: var(--muted);
       letter-spacing: .6px; text-transform: uppercase;
@@ -229,6 +249,34 @@
       font-size: 11px;
       font-weight: 700;
       color: #fff;
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
     }
 
     .spinner {
@@ -304,6 +352,8 @@
       .modal-header { flex-direction: column; align-items: stretch; }
       .modal-actions { flex-wrap: wrap; }
       #topicsModalSearch { width: 100%; }
+      .topic-hero-card { min-height: 440px; }
+      .topic-hero-chart { min-height: 320px; }
     }
   </style>
 </head>
@@ -362,29 +412,56 @@
     <div id="error"></div>
 
     <div class="tab-panel active" id="tab-topic">
-      <div class="section-label">Fag &amp; Statistikk</div>
-      <div class="grid">
+      <div class="section-label">Fag & Oversikt</div>
+
+      <div class="topic-main-layout">
+        <div class="card topic-hero-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" style="font-size:15px;">Fag (Tag) – hovedfordeling</div>
+              <div class="card-hint">Klikk på et kakestykke for å åpne saker i Trimble Connect</div>
+            </div>
+          </div>
+          <div class="topic-hero-chart">
+            <canvas id="tagDisciplineChart"></canvas>
+          </div>
+        </div>
 
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">Fag (Tag): fordeling</div>
-              <div class="card-hint">Klikk på et segment → se og åpne topics i Trimble Connect</div>
-            </div>
-          </div>
-          <div class="chart-wrap"><canvas id="tagDisciplineChart"></canvas></div>
-        </div>
-
-        <div class="card" style="grid-column: span 2 / auto;">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Fag (Tag): antall saker per status</div>
-              <div class="card-hint">Klikk på en rad for å filtrere alle grafer på faget</div>
+              <div class="card-title">Fag (Tag) – detaljer per status</div>
+              <div class="card-hint">Klikk på rad for å filtrere hele løsningen</div>
             </div>
           </div>
           <div class="table-wrap" id="tagStatusTableWrap"></div>
         </div>
+      </div>
+    </div>
 
+    <div class="tab-panel" id="tab-vdc">
+      <div class="section-label">Analyse & KPI</div>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Totale saker</div>
+          <div class="kpi-value" id="kpiTotalTopics">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Åpne saker</div>
+          <div class="kpi-value" id="kpiOpenTopics">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Lukkede saker</div>
+          <div class="kpi-value" id="kpiClosedTopics">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Fag i utvalg</div>
+          <div class="kpi-value" id="kpiDisciplines">0</div>
+        </div>
+      </div>
+
+      <div class="grid">
         <div class="card">
           <div class="card-header"><div class="card-title">Topics per Status over tid</div></div>
           <div class="chart-wrap"><canvas id="statusLineChart"></canvas></div>
@@ -403,65 +480,42 @@
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">Gjennomsnittlig tid: opprettet → lukket</div>
-              <div class="card-hint">Stiplet linje = globalt snitt</div>
+              <div class="card-title">Gjennomsnittlig cycle time</div>
+              <div class="card-hint">Opprettet → lukket</div>
             </div>
           </div>
           <div class="chart-wrap"><canvas id="avgCycleTimeChart"></canvas></div>
         </div>
 
         <div class="card">
-          <div class="card-header"><div class="card-title">Opprettede Topics over tid</div></div>
+          <div class="card-header"><div class="card-title">Opprettede Topics</div></div>
           <div class="chart-wrap"><canvas id="createdOverTimeChart"></canvas></div>
         </div>
 
-      </div>
-    </div>
-
-    <div class="tab-panel" id="tab-vdc">
-      <div class="section-label">VDC Metrics</div>
-      <div class="grid">
-
         <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Created vs Closed (per uke)</div>
-              <div class="card-hint">Closed estimeres med <code>modified_date</code></div>
-            </div>
-          </div>
+          <div class="card-header"><div class="card-title">Created vs Closed</div></div>
           <div class="chart-wrap"><canvas id="createdClosedChart"></canvas></div>
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Backlog (kumulativ)</div>
-              <div class="card-hint">Created − Closed akkumulert</div>
-            </div>
-          </div>
+          <div class="card-header"><div class="card-title">Backlog</div></div>
           <div class="chart-wrap"><canvas id="backlogChart"></canvas></div>
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">WIP over tid</div>
-              <div class="card-hint">Åpne saker ved slutten av hver uke</div>
-            </div>
-          </div>
+          <div class="card-header"><div class="card-title">WIP</div></div>
           <div class="chart-wrap"><canvas id="wipChart"></canvas></div>
         </div>
 
         <div class="card">
           <div class="card-header">
             <div>
-              <div class="card-title">Due date: On-time vs Late</div>
+              <div class="card-title">Due Date Performance</div>
               <div class="card-hint" id="dueDateNote">Vises kun hvis <code>due_date</code> finnes</div>
             </div>
           </div>
           <div class="chart-wrap"><canvas id="dueDateChart"></canvas></div>
         </div>
-
       </div>
     </div>
 
@@ -856,6 +910,23 @@
       row.classList.toggle("visible", !!selectedAssigneeStatus);
     }
 
+    function updateVdcKpis(topics){
+      const total = topics.length;
+      const closed = topics.filter(t=>CLOSED_STATUSES.has(getStatus(t))).length;
+      const open = total - closed;
+      const disciplines = new Set();
+      for(const t of topics){
+        const tags = extractTags(t);
+        if(tags.length) tags.forEach(x=>disciplines.add(x));
+        else disciplines.add(UNKNOWN_LABEL);
+      }
+
+      document.getElementById("kpiTotalTopics").textContent = total;
+      document.getElementById("kpiOpenTopics").textContent = open;
+      document.getElementById("kpiClosedTopics").textContent = closed;
+      document.getElementById("kpiDisciplines").textContent = disciplines.size;
+    }
+
     document.querySelectorAll(".tab-btn").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const tab = btn.dataset.tab;
@@ -1176,7 +1247,7 @@
             openModal(chart.data.labels[els[0].index]);
           },
           plugins:{
-            legend:{display:true, labels:{boxWidth:12, padding:10}},
+            legend:{display:true, labels:{boxWidth:14, padding:12}},
             tooltip:{
               callbacks:{
                 label:c=>{
@@ -1193,7 +1264,7 @@
                 const p = (v/s)*100;
                 return p < 4 ? "" : p.toFixed(0)+"%";
               },
-              font:{weight:"bold", size:11},
+              font:{weight:"bold", size:12},
               color:"#fff"
             }
           }
@@ -1686,30 +1757,32 @@
       renderAssigneeTopicList(topics);
     }
 
-    function renderTopicDashboard(weekTopics, filteredTopics){
+    function renderTopicDashboard(weekTopics){
       buildPie("tagDisciplineChart", aggTagCounts(weekTopics));
       renderTagTable(document.getElementById("tagStatusTableWrap"), aggTagStatusMatrix(weekTopics));
+    }
 
-      const byStatus = aggByCategory(filteredTopics, t=>t.topic_status || t.status);
+    function renderVdcDashboard(topics){
+      updateVdcKpis(topics);
+
+      const byStatus = aggByCategory(topics, t=>t.topic_status || t.status);
       buildMultiLine("statusLineChart", byStatus.labels, byStatus.keys, byStatus.seriesMap, (k,i)=>getStatusColor(k, PALETTE[i % PALETTE.length]));
 
-      const byType = aggByCategory(filteredTopics, t=>t.topic_type || t.type);
+      const byType = aggByCategory(topics, t=>t.topic_type || t.type);
       buildMultiLine("typeLineChart", byType.labels, byType.keys, byType.seriesMap);
 
-      const byPriority = aggByCategory(filteredTopics, t=>t.priority);
+      const byPriority = aggByCategory(topics, t=>t.priority);
       buildMultiLine("priorityLineChart", byPriority.labels, byPriority.keys, byPriority.seriesMap);
 
-      const ct = aggAvgCycleTime(filteredTopics);
+      const ct = aggAvgCycleTime(topics);
       buildLine("avgCycleTimeChart", ct.labels, [
         mkDataset("Snitt per uke (dager)", ct.series, 0, {tension:.25,pointRadius:2,fill:false}),
         mkDataset("Globalt snitt (dager)", ct.globalLine, 1, {tension:0,pointRadius:0,fill:false,borderDash:[6,4]})
       ]);
 
-      const tot = aggCreatedTotal(filteredTopics);
+      const tot = aggCreatedTotal(topics);
       buildBar("createdOverTimeChart", tot.labels, [mkDataset("Opprettede topics", tot.totals, 0)]);
-    }
 
-    function renderVdcDashboard(topics){
       const wls = buildWeekLabels(topics);
       if(!wls.length) return;
 
@@ -1757,7 +1830,7 @@
       updateAssigneeUi();
       updateAssigneeStatusUi();
 
-      renderTopicDashboard(weekFiltered, filtered);
+      renderTopicDashboard(weekFiltered);
       renderVdcDashboard(filtered);
       renderAssigneeDashboard(filtered);
     }
