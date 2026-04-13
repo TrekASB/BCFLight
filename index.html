@@ -564,33 +564,8 @@
         </div>
 
         <div class="card">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Gjennomsnittlig cycle time</div>
-              <div class="card-hint">Opprettet → lukket</div>
-            </div>
-          </div>
-          <div class="chart-wrap"><canvas id="avgCycleTimeChart"></canvas></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">Opprettede Topics</div></div>
-          <div class="chart-wrap"><canvas id="createdOverTimeChart"></canvas></div>
-        </div>
-
-        <div class="card">
           <div class="card-header"><div class="card-title">Created vs Closed</div></div>
           <div class="chart-wrap"><canvas id="createdClosedChart"></canvas></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">Backlog</div></div>
-          <div class="chart-wrap"><canvas id="backlogChart"></canvas></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">WIP</div></div>
-          <div class="chart-wrap"><canvas id="wipChart"></canvas></div>
         </div>
 
         <div class="card">
@@ -1021,18 +996,6 @@
       });
     });
 
-    function aggCreatedTotal(topics){
-      const bm = new Map();
-      for(const t of topics){
-        const cd = parseDateMaybe(t.creation_date);
-        if(!cd) continue;
-        const b = bucketKey(cd);
-        bm.set(b,(bm.get(b)||0)+1);
-      }
-      const labels = uniqueSorted([...bm.keys()]);
-      return {labels, totals:labels.map(b=>bm.get(b)||0)};
-    }
-
     function aggByCategory(topics, getCat){
       const bm = new Map();
       for(const t of topics){
@@ -1137,30 +1100,6 @@
       };
     }
 
-    function aggAvgCycleTime(topics){
-      const bm = new Map(), all = [];
-      for(const t of topics){
-        const cl = getClosedDate(t);
-        if(!cl) continue;
-        const cd = parseDateMaybe(t.creation_date);
-        if(!cd) continue;
-        const diff = cl-cd;
-        if(diff < 0) continue;
-        const days = diff/(1000*60*60*24);
-        all.push(days);
-        const b = bucketKey(cd);
-        if(!bm.has(b)) bm.set(b,[]);
-        bm.get(b).push(days);
-      }
-      const labels = uniqueSorted([...bm.keys()]);
-      const series = labels.map(b=>{
-        const a = avg(bm.get(b)||[]);
-        return a===null ? null : Math.round(a);
-      });
-      const ga = avg(all);
-      return {labels, series, globalLine: labels.map(_=>ga===null?null:Math.round(ga))};
-    }
-
     function buildWeekLabels(topics){
       const weeks = [];
       for(const t of topics){
@@ -1188,23 +1127,6 @@
         }
       }
       return {c:wls.map(w=>cm[w]||0), x:wls.map(w=>xm[w]||0)};
-    }
-
-    function aggBacklog(c,x){
-      let cum = 0;
-      return c.map((_,i)=>(cum += c[i]-x[i]));
-    }
-
-    function aggWip(topics, wls){
-      const items = topics
-        .map(t=>({ created:parseDateMaybe(t.creation_date), closed:getClosedDate(t) }))
-        .filter(x=>x.created);
-
-      return wls.map(w=>{
-        const {end} = isoWeekToDateRange(w);
-        const em = end.getTime();
-        return items.filter(it => it.created.getTime() <= em && (!it.closed || it.closed.getTime() > em)).length;
-      });
     }
 
     function aggDueDate(topics, wls){
@@ -1260,23 +1182,6 @@
           scales:{
             x:{stacked, ticks:{maxRotation:45,minRotation:0,autoSkip:true}},
             y:{stacked, beginAtZero:true, ticks:{precision:0}}
-          }
-        }
-      });
-    }
-
-    function buildLine(id, labels, datasets){
-      destroyChart(id);
-      charts[id] = new Chart(getCtx(id), {
-        type:"line",
-        data:{labels,datasets},
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          plugins:{legend:{display:true, labels:{boxWidth:12, padding:12}}},
-          scales:{
-            x:{ticks:{maxRotation:45,minRotation:0,autoSkip:true}},
-            y:{beginAtZero:true, ticks:{precision:0}}
           }
         }
       });
@@ -1860,15 +1765,6 @@
       const byPriority = aggByCategory(topics, t=>t.priority);
       buildMultiLine("priorityLineChart", byPriority.labels, byPriority.keys, byPriority.seriesMap);
 
-      const ct = aggAvgCycleTime(topics);
-      buildLine("avgCycleTimeChart", ct.labels, [
-        mkDataset("Snitt per uke (dager)", ct.series, 0, {tension:.25,pointRadius:2,fill:false}),
-        mkDataset("Globalt snitt (dager)", ct.globalLine, 1, {tension:0,pointRadius:0,fill:false,borderDash:[6,4]})
-      ]);
-
-      const tot = aggCreatedTotal(topics);
-      buildBar("createdOverTimeChart", tot.labels, [mkDataset("Opprettede topics", tot.totals, 0)]);
-
       const wls = buildWeekLabels(topics);
       if(!wls.length) return;
 
@@ -1876,14 +1772,6 @@
       buildBar("createdClosedChart", wls, [
         mkDataset("Created",c,0),
         { ...mkDataset("Closed",x,1), backgroundColor:getStatusColor("Closed"), borderColor:getStatusColor("Closed") }
-      ]);
-
-      buildLine("backlogChart", wls, [
-        mkDataset("Backlog (kumulativ)", aggBacklog(c,x), 0, {tension:.25,pointRadius:2,fill:false})
-      ]);
-
-      buildLine("wipChart", wls, [
-        mkDataset("WIP (åpne ved ukeslutt)", aggWip(topics,wls), 2, {tension:.25,pointRadius:2,fill:false})
       ]);
 
       const dd = aggDueDate(topics,wls);
