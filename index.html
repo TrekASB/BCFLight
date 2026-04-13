@@ -354,13 +354,24 @@
 if (window.ChartDataLabels) Chart.register(ChartDataLabels);
 
 const TOPICS_API_BASE  = "https://open21.connect.trimble.com";
-const CLOSED_STATUSES  = new Set(["Closed","Done","Resolved","Approved"]);
+const CLOSED_STATUSES  = new Set(["Closed","Colsed","Done","Resolved","Approved"]);
 const UNKNOWN          = "Ikke satt";
 const PALETTE = [
   "#3b82f6","#10b981","#f59e0b","#ef4444","#8b5cf6",
   "#06b6d4","#f97316","#84cc16","#ec4899","#6366f1",
   "#14b8a6","#fb923c","#a3e635","#c084fc","#38bdf8"
 ];
+
+const STATUS_COLOR_MAP = {
+  "new": "#3684D1",
+  "in progress": "#FCC603",
+  "in-progress": "#FCC603",
+  "inprogress": "#FCC603",
+  "waiting": "#29B35B",
+  "done": "#FF04C2",
+  "closed": "#FF0004",
+  "colsed": "#FF0004"
+};
 
 let API = null, accessToken = null, currentProjectId = null;
 let allTopics = [], allWithDates = [];
@@ -372,6 +383,14 @@ const modal = { tag: null, topics: [], sortKey: "created", sortDir: "desc", sear
 const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const safe = v  => (v === null || v === undefined) ? "" : String(v).trim();
 const pad2 = n  => String(n).padStart(2,"0");
+
+function normalizeStatus(status){
+  return safe(status).toLowerCase().replace(/\s+/g, " ").trim();
+}
+function getStatusColor(status, fallback = null){
+  const key = normalizeStatus(status);
+  return STATUS_COLOR_MAP[key] || fallback;
+}
 
 function setStatus(msg, loading = false){
   const el = document.getElementById("statusMsg");
@@ -600,17 +619,21 @@ function buildLine(id, labels, datasets){
   });
   return CHARTS[id];
 }
-function buildMultiLine(id, labels, keys, seriesMap){
-  const datasets = keys.map((k, i) => ({ label: k, data: seriesMap[k], color: PALETTE[i % PALETTE.length] }));
+function buildMultiLine(id, labels, keys, seriesMap, colorResolver){
+  const datasets = keys.map((k, i) => ({
+    label: k,
+    data: seriesMap[k],
+    color: colorResolver ? colorResolver(k, i) : PALETTE[i % PALETTE.length]
+  }));
   return buildLine(id, labels, datasets);
 }
-function buildPie(id, labels, data, onClickLabel){
+function buildPie(id, labels, data, onClickLabel, colorResolver = null){
   clearEmptyOverlay(id);
   if(!labels.length || !data.some(v => v > 0)){ noDataOverlay(id); return null; }
   destroyChart(id);
   const ctx = freshCanvas(id); if(!ctx) return null;
   const total = data.reduce((a,b) => a+b, 0);
-  const colors = labels.map((_, i) => PALETTE[i % PALETTE.length]);
+  const colors = labels.map((label, i) => colorResolver ? colorResolver(label, i) : PALETTE[i % PALETTE.length]);
   CHARTS[id] = new Chart(ctx, {
     type: "pie",
     data: { labels, datasets: [{ data, backgroundColor: colors }] },
@@ -618,7 +641,9 @@ function buildPie(id, labels, data, onClickLabel){
       responsive: true,
       onClick: (evt, elements, chart) => {
         if(!elements?.length) return;
-        onClickLabel(chart.data.labels[elements[0].index]);
+        if(typeof onClickLabel === "function"){
+          onClickLabel(chart.data.labels[elements[0].index]);
+        }
       },
       plugins: {
         legend: { display: true, position: "right", labels: { font: { size: 11 }, boxWidth: 12 } },
@@ -785,13 +810,7 @@ function renderUserStatusView(topics){
   const labels = Object.keys(statusCounts).sort((a,b) => statusOrder(a) - statusOrder(b) || a.localeCompare(b));
   const data   = labels.map(l => statusCounts[l]);
 
-  const statusColors = {
-    "Open": "#3b82f6", "Active": "#3b82f6", "Åpen": "#3b82f6",
-    "In Progress": "#f59e0b", "Pågår": "#f59e0b",
-    "Closed": "#10b981", "Done": "#10b981", "Resolved": "#10b981", "Approved": "#16a34a",
-    "Rejected": "#ef4444",
-  };
-  const colors = labels.map((l, i) => statusColors[l] || PALETTE[i % PALETTE.length]);
+  const colors = labels.map((l, i) => getStatusColor(l, PALETTE[i % PALETTE.length]));
 
   clearEmptyOverlay("tagPieChart");
   if(!labels.length || !data.some(v => v > 0)){
@@ -835,11 +854,12 @@ function renderUserStatusView(topics){
   const openCount   = topics.length - closedCount;
   const pctClosed   = topics.length ? Math.round((closedCount / topics.length) * 100) : 0;
 
-  const rows = labels.map(l => {
+  const rows = labels.map((l, i) => {
     const cnt = statusCounts[l] || 0;
     const pct = topics.length ? ((cnt / topics.length) * 100).toFixed(1) : "0.0";
     const cls = statusBadgeClass(l);
-    const bar = `<div style="width:${pct}%;min-width:${cnt?3:0}px;height:6px;border-radius:3px;background:${statusColors[l]||'#94a3b8'};"></div>`;
+    const color = getStatusColor(l, colors[i] || "#94a3b8");
+    const bar = `<div style="width:${pct}%;min-width:${cnt?3:0}px;height:6px;border-radius:3px;background:${color};"></div>`;
     return `<tr>
       <td><span class="pill ${cls}">${esc(l)}</span></td>
       <td class="right"><b>${cnt}</b></td>
@@ -882,7 +902,8 @@ function doRender(){
   const byStatus   = aggByWeek(fullFiltered, getStatus);
   const byType     = aggByWeek(fullFiltered, getType);
   const byPriority = aggByWeek(fullFiltered, getPriority);
-  buildMultiLine("statusLineChart", byStatus.labels, byStatus.keys, byStatus.series);
+
+  buildMultiLine("statusLineChart", byStatus.labels, byStatus.keys, byStatus.series, (key, i) => getStatusColor(key, PALETTE[i % PALETTE.length]));
   buildMultiLine("typeLineChart", byType.labels, byType.keys, byType.series);
   buildMultiLine("priorityLineChart", byPriority.labels, byPriority.keys, byPriority.series);
 
@@ -899,7 +920,7 @@ function doRender(){
   const cc = aggCreatedClosed(fullFiltered, wks);
   buildBar("createdClosedChart", wks, [
     { label: "Created", data: cc.created, color: PALETTE[0] },
-    { label: "Closed", data: cc.closed, color: PALETTE[1] }
+    { label: "Closed", data: cc.closed, color: getStatusColor("Closed", PALETTE[1]) }
   ]);
 
   let cum = 0;
