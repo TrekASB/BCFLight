@@ -127,6 +127,14 @@
       background: var(--blue); color: #fff;
       font-size: 12px; font-weight: 600;
     }
+    .status-filter-bar {
+      display: none;
+      margin-top: 10px;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .status-filter-bar.visible { display: flex; }
 
     .tabs-bar {
       background: var(--surface);
@@ -174,6 +182,7 @@
     .card-header {
       display: flex; align-items: flex-start; justify-content: space-between;
       margin-bottom: 14px;
+      gap: 12px;
     }
     .card-title { font-size: 13px; font-weight: 700; color: var(--text); }
     .card-hint { font-size: 11px; color: var(--muted-light); margin-top: 3px; }
@@ -283,7 +292,12 @@
       border: 1px dashed var(--border);
       border-radius: var(--radius-sm);
       background: #fafbfd;
+      text-align: center;
+      padding: 20px;
     }
+
+    .click-row { cursor: pointer; }
+    .click-row:hover td { background: #EBF2FC; }
 
     @media (max-width: 920px) {
       .grid { grid-template-columns: 1fr; }
@@ -478,6 +492,21 @@
         <div class="card">
           <div class="card-header">
             <div>
+              <div class="card-title" id="assigneeStatusPieTitle">Statusfordeling for valgt bruker</div>
+              <div class="card-hint" id="assigneeStatusPieHint">Velg en bruker i tabellen eller i filteret over</div>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="assigneeStatusPieChart"></canvas></div>
+          <div class="status-filter-bar" id="assigneeStatusFilterBar">
+            <span class="filter-badge-label">Statusfilter aktiv</span>
+            <span class="pill" id="assigneeStatusFilterPill"></span>
+            <button class="btn btn-danger" id="clearAssigneeStatusBtn">✕ Fjern</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
               <div class="card-title">Assignee: Saker over tid</div>
               <div class="card-hint">Opprettede saker per person per uke</div>
             </div>
@@ -503,6 +532,16 @@
             </div>
           </div>
           <div class="table-wrap" id="assigneeTableWrap"></div>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+          <div class="card-header">
+            <div>
+              <div class="card-title" id="assigneeTopicListTitle">Saksliste for valgt bruker</div>
+              <div class="card-hint" id="assigneeTopicListHint">Klikk på en sak for å åpne den i Trimble Connect</div>
+            </div>
+          </div>
+          <div class="table-wrap" id="assigneeTopicListWrap"></div>
         </div>
 
       </div>
@@ -569,6 +608,7 @@
     let currentFilteredTopics = [];
     let selectedTag = null;
     let selectedAssignee = null;
+    let selectedAssigneeStatus = null;
     let charts = {};
 
     let modalState = {
@@ -723,6 +763,17 @@
       return a.length ? a : [UNKNOWN_LABEL];
     }
 
+    function topicMatchesSelectedAssignee(topic){
+      if(!selectedAssignee) return true;
+      const a = extractAssignees(topic);
+      return selectedAssignee === UNKNOWN_LABEL ? a.length === 0 : a.includes(selectedAssignee);
+    }
+
+    function topicMatchesSelectedAssigneeStatus(topic){
+      if(!selectedAssigneeStatus) return true;
+      return getStatus(topic) === selectedAssigneeStatus;
+    }
+
     function populateWeekSelectors(topics){
       const weeks = [];
       for(const t of topics){
@@ -769,10 +820,7 @@
 
     function applyAssigneeFilter(topics){
       if(!selectedAssignee) return topics;
-      return topics.filter(t=>{
-        const a = extractAssignees(t);
-        return selectedAssignee === UNKNOWN_LABEL ? a.length === 0 : a.includes(selectedAssignee);
-      });
+      return topics.filter(topicMatchesSelectedAssignee);
     }
 
     function populateAssigneeDropdown(topics){
@@ -799,6 +847,13 @@
       const row = document.getElementById("tagFilterRow");
       document.getElementById("activeTagPill").textContent = selectedTag || "";
       row.classList.toggle("visible", !!selectedTag);
+    }
+
+    function updateAssigneeStatusUi(){
+      const row = document.getElementById("assigneeStatusFilterBar");
+      const pill = document.getElementById("assigneeStatusFilterPill");
+      pill.textContent = selectedAssigneeStatus || "";
+      row.classList.toggle("visible", !!selectedAssigneeStatus);
     }
 
     document.querySelectorAll(".tab-btn").forEach(btn=>{
@@ -1038,10 +1093,6 @@
 
     function buildBar(id, labels, datasets, stacked=false){
       destroyChart(id);
-      if(!labels.length){
-        document.getElementById(id).parentElement.innerHTML = `<div class="empty-box">Ingen data å vise</div>`;
-        return;
-      }
       charts[id] = new Chart(getCtx(id), {
         type:"bar",
         data:{labels,datasets},
@@ -1059,10 +1110,6 @@
 
     function buildLine(id, labels, datasets){
       destroyChart(id);
-      if(!labels.length){
-        document.getElementById(id).parentElement.innerHTML = `<div class="empty-box">Ingen data å vise</div>`;
-        return;
-      }
       charts[id] = new Chart(getCtx(id), {
         type:"line",
         data:{labels,datasets},
@@ -1080,11 +1127,6 @@
 
     function buildMultiLine(id, labels, keys, seriesMap, colorResolver=null){
       destroyChart(id);
-      if(!labels.length){
-        document.getElementById(id).parentElement.innerHTML = `<div class="empty-box">Ingen data å vise</div>`;
-        return;
-      }
-
       const ds = keys.map((k,i)=>({
         label: k,
         data: seriesMap[k],
@@ -1251,29 +1293,14 @@
         const db = parseDateMaybe(b.creation_date)?.getTime() || 0;
 
         switch(modalState.sortKey){
-          case "created":
-            cmp = da - db;
-            break;
-          case "status":
-            cmp = getStatus(a).localeCompare(getStatus(b));
-            break;
-          case "type":
-            cmp = (safeStr(a.topic_type||a.type)||UNKNOWN_LABEL).localeCompare(safeStr(b.topic_type||b.type)||UNKNOWN_LABEL);
-            break;
-          case "priority":
-            cmp = (safeStr(a.priority)||UNKNOWN_LABEL).localeCompare(safeStr(b.priority)||UNKNOWN_LABEL);
-            break;
-          case "title":
-            cmp = getTitle(a).localeCompare(getTitle(b));
-            break;
-          case "assignee":
-            cmp = (extractAssignees(a).join(", ")||UNKNOWN_LABEL).localeCompare(extractAssignees(b).join(", ")||UNKNOWN_LABEL);
-            break;
-          case "id":
-            cmp = getId(a).localeCompare(getId(b));
-            break;
-          default:
-            cmp = da - db;
+          case "created": cmp = da - db; break;
+          case "status": cmp = getStatus(a).localeCompare(getStatus(b)); break;
+          case "type": cmp = (safeStr(a.topic_type||a.type)||UNKNOWN_LABEL).localeCompare(safeStr(b.topic_type||b.type)||UNKNOWN_LABEL); break;
+          case "priority": cmp = (safeStr(a.priority)||UNKNOWN_LABEL).localeCompare(safeStr(b.priority)||UNKNOWN_LABEL); break;
+          case "title": cmp = getTitle(a).localeCompare(getTitle(b)); break;
+          case "assignee": cmp = (extractAssignees(a).join(", ")||UNKNOWN_LABEL).localeCompare(extractAssignees(b).join(", ")||UNKNOWN_LABEL); break;
+          case "id": cmp = getId(a).localeCompare(getId(b)); break;
+          default: cmp = da - db;
         }
         return cmp * dir;
       });
@@ -1306,7 +1333,7 @@
              </td>`
           : `<td></td>`;
 
-        return `<tr class="topic-row" data-id="${escHtml(id)}" style="cursor:pointer;" title="Klikk for å åpne i Trimble Connect">
+        return `<tr class="topic-row click-row" data-id="${escHtml(id)}" title="Klikk for å åpne i Trimble Connect">
           <td>${escHtml(cd)}</td>
           <td>${renderStatusPill(getStatus(t))}</td>
           <td>${escHtml(type)}</td>
@@ -1334,8 +1361,6 @@
 
       wrap.querySelectorAll("tr.topic-row").forEach(tr=>{
         tr.addEventListener("click", ()=> openTopicInTC(tr.getAttribute("data-id")));
-        tr.addEventListener("mouseenter", ()=> tr.style.background="#EBF2FC");
-        tr.addEventListener("mouseleave", ()=> tr.style.background="");
       });
 
       wrap.querySelectorAll("th.sortable").forEach(th=>{
@@ -1425,10 +1450,178 @@
       el.querySelectorAll("tr.tag-row").forEach(tr=>{
         tr.addEventListener("click", ()=>{
           const clicked = tr.getAttribute("data-assignee") || null;
-          selectedAssignee = selectedAssignee === clicked ? null : clicked;
+          if(selectedAssignee === clicked){
+            selectedAssignee = null;
+            selectedAssigneeStatus = null;
+          } else {
+            selectedAssignee = clicked;
+            selectedAssigneeStatus = null;
+          }
           updateAssigneeUi();
+          updateAssigneeStatusUi();
           renderAll(currentWeekFilteredTopics);
         });
+      });
+    }
+
+    function renderAssigneeStatusPie(topics){
+      const titleEl = document.getElementById("assigneeStatusPieTitle");
+      const hintEl = document.getElementById("assigneeStatusPieHint");
+
+      const base = topics.filter(topicMatchesSelectedAssignee);
+      const counts = {};
+      for(const t of base){
+        const st = getStatus(t);
+        counts[st] = (counts[st] || 0) + 1;
+      }
+
+      destroyChart("assigneeStatusPieChart");
+
+      const canvas = document.getElementById("assigneeStatusPieChart");
+      const parent = canvas.parentElement;
+      const existingEmpty = parent.querySelector(".empty-box");
+      if(existingEmpty) existingEmpty.remove();
+      canvas.style.display = "";
+
+      if(selectedAssignee){
+        titleEl.textContent = `Statusfordeling — ${selectedAssignee}`;
+        hintEl.textContent = "Klikk på et kakestykke for å filtrere saklisten på status";
+      } else {
+        titleEl.textContent = "Statusfordeling for valgt bruker";
+        hintEl.textContent = "Velg en bruker i tabellen eller i filteret over";
+      }
+
+      if(!selectedAssignee || !Object.keys(counts).length){
+        canvas.style.display = "none";
+        const box = document.createElement("div");
+        box.className = "empty-box";
+        box.textContent = selectedAssignee
+          ? "Ingen saker funnet for valgt bruker"
+          : "Velg en bruker for å vise statusfordeling";
+        parent.appendChild(box);
+        return;
+      }
+
+      const labels = Object.keys(counts).sort((a,b)=>a.localeCompare(b));
+      const data = labels.map(l=>counts[l]);
+      const total = data.reduce((a,b)=>a+b,0);
+
+      charts["assigneeStatusPieChart"] = new Chart(getCtx("assigneeStatusPieChart"), {
+        type: "pie",
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: labels.map(l=>getStatusColor(l))
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (_, els, chart) => {
+            if(!els || !els.length) return;
+            const clickedStatus = chart.data.labels[els[0].index];
+            selectedAssigneeStatus = selectedAssigneeStatus === clickedStatus ? null : clickedStatus;
+            updateAssigneeStatusUi();
+            renderAssigneeTopicList(currentFilteredTopics);
+          },
+          plugins: {
+            legend: { display: true, labels: { boxWidth: 12, padding: 10 } },
+            tooltip: {
+              callbacks: {
+                label: c => {
+                  const v = c.parsed ?? 0;
+                  const pct = total ? (v/total*100) : 0;
+                  return `${c.label}: ${v} (${pct.toFixed(1)}%)`;
+                }
+              }
+            },
+            datalabels: {
+              formatter: (v, ctx) => {
+                const s = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                if(!s) return "";
+                const p = (v/s)*100;
+                return p < 4 ? "" : p.toFixed(0) + "%";
+              },
+              font: { weight: "bold", size: 11 },
+              color: "#fff"
+            }
+          }
+        }
+      });
+    }
+
+    function renderAssigneeTopicList(topics){
+      const wrap = document.getElementById("assigneeTopicListWrap");
+      const titleEl = document.getElementById("assigneeTopicListTitle");
+      const hintEl = document.getElementById("assigneeTopicListHint");
+
+      let list = topics.filter(topicMatchesSelectedAssignee);
+
+      if(selectedAssigneeStatus){
+        list = list.filter(topicMatchesSelectedAssigneeStatus);
+      }
+
+      list = list.sort((a,b)=>(parseDateMaybe(b.creation_date)?.getTime()||0)-(parseDateMaybe(a.creation_date)?.getTime()||0));
+
+      if(selectedAssignee){
+        titleEl.textContent = `Saksliste — ${selectedAssignee}`;
+      } else {
+        titleEl.textContent = "Saksliste for valgt bruker";
+      }
+
+      hintEl.textContent = selectedAssigneeStatus
+        ? `Filtrert på status: ${selectedAssigneeStatus}. Klikk på rad for å åpne saken i Trimble Connect`
+        : "Klikk på en sak for å åpne den i Trimble Connect";
+
+      if(!selectedAssignee){
+        wrap.innerHTML = `<div class="empty-box">Velg en bruker i tabellen eller i filteret over for å vise saklisten</div>`;
+        return;
+      }
+
+      if(!list.length){
+        wrap.innerHTML = `<div class="empty-box">Ingen saker funnet for valgt filter</div>`;
+        return;
+      }
+
+      const rows = list.map(t=>{
+        const id = getId(t);
+        const assignees = extractAssignees(t).join(", ") || UNKNOWN_LABEL;
+        const type = safeStr(t.topic_type || t.type) || UNKNOWN_LABEL;
+        const priority = safeStr(t.priority) || UNKNOWN_LABEL;
+        return `<tr class="click-row assignee-topic-row" data-id="${escHtml(id)}">
+          <td>${fmtDate(parseDateMaybe(t.creation_date))}</td>
+          <td>${renderStatusPill(getStatus(t))}</td>
+          <td>${escHtml(type)}</td>
+          <td>${escHtml(priority)}</td>
+          <td title="${escHtml(getTitle(t))}" style="white-space:normal;max-width:320px;">${escHtml(getTitle(t))}</td>
+          <td style="white-space:normal;max-width:180px;">${escHtml(assignees)}</td>
+          <td><code>${escHtml(id)}</code></td>
+          <td style="text-align:center;">
+            <a href="${escHtml(buildTopicUrl(id) || "#")}" target="_blank" rel="noopener"
+               title="Åpne i Trimble Connect"
+               style="font-size:16px;text-decoration:none;"
+               onclick="event.stopPropagation()">🔗</a>
+          </td>
+        </tr>`;
+      }).join("");
+
+      wrap.innerHTML = `<table>
+        <thead><tr>
+          <th>Opprettet</th>
+          <th>Status</th>
+          <th>Type</th>
+          <th>Priority</th>
+          <th>Tittel</th>
+          <th>Assignee</th>
+          <th>GUID/ID</th>
+          <th style="text-align:center;">TC</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+      wrap.querySelectorAll(".assignee-topic-row").forEach(tr=>{
+        tr.addEventListener("click", ()=> openTopicInTC(tr.getAttribute("data-id")));
       });
     }
 
@@ -1489,6 +1682,8 @@
       });
 
       renderAssigneeTable(document.getElementById("assigneeTableWrap"), sm);
+      renderAssigneeStatusPie(topics);
+      renderAssigneeTopicList(topics);
     }
 
     function renderTopicDashboard(weekTopics, filteredTopics){
@@ -1560,6 +1755,7 @@
 
       updateTagFilterUi();
       updateAssigneeUi();
+      updateAssigneeStatusUi();
 
       renderTopicDashboard(weekFiltered, filtered);
       renderVdcDashboard(filtered);
@@ -1677,7 +1873,8 @@
       setStatus(
         `${(!from&&!to) ? "Alle uker" : `${from||"(start)"} → ${to||"(slutt)"}`} · ${f.length}/${allTopicsWithDates.length} topics` +
         `${selectedTag ? ` · Fag: ${selectedTag}` : ""}` +
-        `${selectedAssignee ? ` · Assignee: ${selectedAssignee}` : ""}`
+        `${selectedAssignee ? ` · Assignee: ${selectedAssignee}` : ""}` +
+        `${selectedAssigneeStatus ? ` · Status: ${selectedAssigneeStatus}` : ""}`
       );
     });
 
@@ -1691,14 +1888,24 @@
 
     document.getElementById("assigneeSelect").addEventListener("change",e=>{
       selectedAssignee = e.target.value || null;
+      selectedAssigneeStatus = null;
       updateAssigneeUi();
+      updateAssigneeStatusUi();
       renderAll(currentWeekFilteredTopics);
     });
 
     document.getElementById("clearAssigneeBtn").addEventListener("click",()=>{
       selectedAssignee = null;
+      selectedAssigneeStatus = null;
       updateAssigneeUi();
+      updateAssigneeStatusUi();
       renderAll(currentWeekFilteredTopics);
+    });
+
+    document.getElementById("clearAssigneeStatusBtn").addEventListener("click",()=>{
+      selectedAssigneeStatus = null;
+      updateAssigneeStatusUi();
+      renderAssigneeTopicList(currentFilteredTopics);
     });
 
     document.getElementById("topicsModalCloseBtn").addEventListener("click", closeModal);
